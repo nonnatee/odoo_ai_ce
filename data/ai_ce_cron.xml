@@ -15,7 +15,6 @@ for rec in records:
             </field>
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
-            <field name="numbercall">-1</field>
             <field name="active">True</field>
         </record>
     </data>
