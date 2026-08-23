@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_agent_view_list" model="ir.ui.view">
+        <field name="name">ai_ce.agent.list</field>
+        <field name="model">ai_ce.agent</field>
+        <field name="arch" type="xml">
+            <list string="Autonomous AI Agents">
+                <field name="name"/>
+                <field name="provider_id"/>
+                <field name="model_id"/>
+                <field name="temperature"/>
+                <field name="max_iterations"/>
+                <field name="restrict_to_sources"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ai_ce_agent_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.agent.form</field>
+        <field name="model">ai_ce.agent</field>
+        <field name="arch" type="xml">
+            <form string="Autonomous Agent Configuration">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Sales Assistant, Support Bot"/></h1>
+                    </div>
+                    <group>
+                        <group string="Model Binding">
+                            <field name="provider_id"/>
+                            <field name="model_id"/>
+                            <field name="description"/>
+                        </group>
+                        <group string="Reasoning Hyperparameters">
+                            <field name="temperature"/>
+                            <field name="max_iterations"/>
+                            <field name="restrict_to_sources"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="System Prompt" name="system_prompt">
+                            <field name="system_prompt" placeholder="Define global persona, role constraints, and output instructions..."/>
+                        </page>
+                        <page string="Authorized Tools" name="tools">
+                            <field name="tool_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="implementation"/>
+                                    <field name="requires_user_consent"/>
+                                    <field name="description"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_agent" model="ir.actions.act_window">
+        <field name="name">Autonomous Agents</field>
+        <field name="res_model">ai_ce.agent</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

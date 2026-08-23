@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_inherit_ai_ce" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.ai.ce</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="priority" eval="30"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_enrich_wizard" string="Enrich with Hermes" type="object" class="btn-secondary" icon="fa-magic"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Catalog Intelligence" name="ai_catalog_page">
+                    <group>
+                        <group string="SEO &amp; Search Visibility">
+                            <field name="ai_seo_title"/>
+                            <field name="ai_seo_keywords"/>
+                            <field name="ai_seo_description"/>
+                        </group>
+                        <group string="Enrichment Governance">
+                            <field name="ai_enrich_status" widget="badge" decoration-success="ai_enrich_status == 'enriched'" decoration-warning="ai_enrich_status == 'in_progress'"/>
+                            <field name="ai_last_enriched"/>
+                        </group>
+                    </group>
+                    <group string="Key Highlights &amp; Bullet Specs">
+                        <field name="ai_feature_bullets" nolabel="1"/>
+                    </group>
+                    <group string="AI Enhanced Product Copy">
+                        <field name="ai_enriched_description" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_ai_ce" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ai.ce</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="50"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="AI Settings" string="AI Framework" name="odoo_ai_ce">
+                    <block title="Provider &amp; Routing Defaults">
+                        <setting id="default_provider_setting" string="Default AI Provider" help="Select primary provider for Ask AI and Chatter synthesis">
+                            <field name="default_ai_provider_id"/>
+                        </setting>
+                        <setting id="default_model_setting" string="Default Chat Model" help="Default LLM model identifier">
+                            <field name="default_ai_model_id"/>
+                        </setting>
+                    </block>
+                    <block title="Security &amp; Sidecar Governance">
+                        <setting id="strict_allowlist_setting" string="Strict Resource Allowlist" help="Prevent agents and external MCP clients from reading unlisted models">
+                            <field name="strict_allowlist"/>
+                        </setting>
+                        <setting id="hermes_url_setting" string="Hermes Sidecar URL" help="Loopback endpoint for autonomous background agent supervisor">
+                            <field name="hermes_sidecar_url"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_config_settings" model="ir.actions.act_window">
+        <field name="name">AI Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'odoo_ai_ce'}</field>
+    </record>
+</odoo>

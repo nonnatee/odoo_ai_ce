@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root Menu -->
+    <menuitem id="menu_ai_ce_root" name="AI Hub" sequence="10" web_icon="odoo_ai_ce,static/description/icon.png"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_ai_ce_dashboard" name="Control Center" parent="menu_ai_ce_root" sequence="10" action="action_ai_ce_dashboard"/>
+
+    <!-- Operations & Agentic Workflows -->
+    <menuitem id="menu_ai_ce_ops_root" name="Agentic Operations" parent="menu_ai_ce_root" sequence="20"/>
+    <menuitem id="menu_ai_ce_content_studio" name="Hermes Content Studio" parent="menu_ai_ce_ops_root" sequence="5" action="action_ai_ce_content_studio_wizard"/>
+    <menuitem id="menu_ai_ce_agents" name="Autonomous Agents" parent="menu_ai_ce_ops_root" sequence="10" action="action_ai_ce_agent"/>
+    <menuitem id="menu_ai_ce_jobs" name="Background Jobs" parent="menu_ai_ce_ops_root" sequence="15" action="action_ai_ce_job"/>
+    <menuitem id="menu_ai_ce_sessions" name="Conversations &amp; Sessions" parent="menu_ai_ce_ops_root" sequence="20" action="action_ai_ce_session"/>
+    <menuitem id="menu_ai_ce_consents" name="Pending Approvals (HITL)" parent="menu_ai_ce_ops_root" sequence="30" action="action_ai_ce_consent"/>
+    <menuitem id="menu_ai_ce_logs" name="Security Audit Logs" parent="menu_ai_ce_ops_root" sequence="40" action="action_ai_ce_log"/>
+
+    <!-- Tools & Extensibility -->
+    <menuitem id="menu_ai_ce_tools_root" name="Tools &amp; MCP Gateway" parent="menu_ai_ce_root" sequence="30"/>
+    <menuitem id="menu_ai_ce_tools" name="Callable Tools Registry" parent="menu_ai_ce_tools_root" sequence="10" action="action_ai_ce_tool"/>
+    <menuitem id="menu_ai_ce_resources" name="MCP Resource Allowlist" parent="menu_ai_ce_tools_root" sequence="20" action="action_ai_ce_resource"/>
+    <menuitem id="menu_ai_ce_gen_key" name="Generate MCP Key" parent="menu_ai_ce_tools_root" sequence="30" action="action_ai_ce_generate_key_wizard"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_ai_ce_config_root" name="Configuration" parent="menu_ai_ce_root" sequence="40" groups="group_ai_ce_manager"/>
+    <menuitem id="menu_ai_ce_providers" name="AI Providers" parent="menu_ai_ce_config_root" sequence="10" action="action_ai_ce_provider"/>
+    <menuitem id="menu_ai_ce_models" name="Model Catalog" parent="menu_ai_ce_config_root" sequence="20" action="action_ai_ce_model"/>
+    <menuitem id="menu_ai_ce_settings" name="Settings" parent="menu_ai_ce_config_root" sequence="30" action="action_ai_ce_config_settings"/>
+</odoo>

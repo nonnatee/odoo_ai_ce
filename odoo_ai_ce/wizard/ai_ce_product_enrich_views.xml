@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_product_enrich_wizard_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.product.enrich.wizard.form</field>
+        <field name="model">ai_ce.product.enrich.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Hermes Product Catalog Enrichment">
+                <!-- Batch Mode Section -->
+                <div class="alert alert-info" role="alert" invisible="not is_batch">
+                    <i class="fa fa-info-circle me-2"/> You have selected multiple products for batch AI enrichment. Click <strong>"Enqueue Batch Job"</strong> to run asynchronously in the background.
+                </div>
+
+                <sheet>
+                    <group invisible="is_batch">
+                        <group string="Enrichment Options">
+                            <field name="product_tmpl_id" readonly="1"/>
+                            <field name="tone"/>
+                            <field name="language"/>
+                        </group>
+                        <group string="Fields to Update">
+                            <field name="apply_seo"/>
+                            <field name="apply_description"/>
+                            <field name="apply_bullets"/>
+                        </group>
+                    </group>
+
+                    <group invisible="not is_batch">
+                        <group string="Batch Configuration">
+                            <field name="tone"/>
+                            <field name="language"/>
+                        </group>
+                        <field name="product_tmpl_ids" nolabel="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="default_code"/>
+                                <field name="list_price"/>
+                                <field name="ai_enrich_status" widget="badge"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <!-- Side-by-Side Diff Preview (Single Mode) -->
+                    <notebook invisible="is_batch or not preview_generated">
+                        <page string="SEO &amp; Meta Details" name="seo_preview">
+                            <group>
+                                <group string="Current State">
+                                    <field name="current_name"/>
+                                </group>
+                                <group string="Proposed AI SEO Tags">
+                                    <field name="proposed_seo_title"/>
+                                    <field name="proposed_keywords"/>
+                                    <field name="proposed_seo_description"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Key Highlights &amp; Specs" name="bullets_preview">
+                            <field name="proposed_feature_bullets"/>
+                        </page>
+                        <page string="Formatted Description" name="desc_preview">
+                            <group>
+                                <group string="Current Description">
+                                    <field name="current_description" nolabel="1"/>
+                                </group>
+                                <group string="Proposed Description">
+                                    <field name="proposed_enriched_description" nolabel="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_generate_preview" string="Generate AI Preview" type="object" class="btn-secondary" invisible="is_batch or preview_generated"/>
+                    <button name="action_generate_preview" string="Regenerate Preview" type="object" class="btn-secondary" invisible="is_batch or not preview_generated"/>
+                    <button name="action_apply_to_product" string="Apply Selected Changes" type="object" class="btn-primary" invisible="is_batch or not preview_generated"/>
+                    <button name="action_enqueue_batch" string="Enqueue Batch Job" type="object" class="btn-primary" invisible="not is_batch"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_product_enrich_wizard" model="ir.actions.act_window">
+        <field name="name">Enrich with Hermes</field>
+        <field name="res_model">ai_ce.product.enrich.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">form,list</field>
+    </record>
+</odoo>

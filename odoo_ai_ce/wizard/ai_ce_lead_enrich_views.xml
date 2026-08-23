@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_lead_enrich_wizard_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.lead.enrich.wizard.form</field>
+        <field name="model">ai_ce.lead.enrich.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Hermes CRM Lead Intelligence">
+                <div class="alert alert-info" role="alert" invisible="not is_batch">
+                    <i class="fa fa-info-circle me-2"/> You have selected multiple CRM leads for batch intelligence profiling. Click <strong>"Enqueue Batch Profiling"</strong> to process asynchronously.
+                </div>
+
+                <sheet>
+                    <group invisible="is_batch">
+                        <field name="lead_id" readonly="1"/>
+                    </group>
+
+                    <group invisible="not is_batch">
+                        <field name="lead_ids" nolabel="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="partner_name"/>
+                                <field name="email_from"/>
+                                <field name="ai_qualification_score" widget="progressbar"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <notebook invisible="is_batch or not is_profiled">
+                        <page string="Lead Intelligence &amp; Score" name="intel_page">
+                            <group>
+                                <group string="Organization Profiling">
+                                    <field name="proposed_industry"/>
+                                    <field name="proposed_company_size"/>
+                                </group>
+                                <group string="Qualification Assessment">
+                                    <field name="proposed_score" widget="progressbar"/>
+                                    <field name="proposed_intent"/>
+                                </group>
+                            </group>
+                            <group string="Identified Pain Points &amp; Customer Requirements">
+                                <field name="proposed_pain_points" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="AI Sales Playbook &amp; Draft Reply" name="reply_page">
+                            <field name="proposed_reply" placeholder="Suggested introductory response..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_generate_intelligence" string="Analyze Lead with Hermes" type="object" class="btn-primary" invisible="is_batch or is_profiled"/>
+                    <button name="action_generate_intelligence" string="Re-analyze" type="object" class="btn-secondary" invisible="is_batch or not is_profiled"/>
+                    <button name="action_apply_to_lead" string="Apply Profile &amp; Post to Chatter" type="object" class="btn-primary" invisible="is_batch or not is_profiled"/>
+                    <button name="action_enqueue_batch" string="Enqueue Batch Profiling" type="object" class="btn-primary" invisible="not is_batch"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_lead_enrich_wizard" model="ir.actions.act_window">
+        <field name="name">Profile with Hermes</field>
+        <field name="res_model">ai_ce.lead.enrich.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_view_types">form,list</field>
+    </record>
+</odoo>

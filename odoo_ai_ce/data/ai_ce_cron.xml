@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_hermes_heartbeat" model="ir.cron">
+            <field name="name">AI CE: Hermes Sidecar Heartbeat Check</field>
+            <field name="model_id" ref="model_ai_ce_hermes_sidecar"/>
+            <field name="state">code</field>
+            <field name="code">
+records = model.search([('active', '=', True)])
+for rec in records:
+    try:
+        rec.action_ping_sidecar()
+    except Exception:
+        pass
+            </field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

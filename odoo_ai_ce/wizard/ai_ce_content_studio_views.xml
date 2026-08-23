@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_content_studio_wizard_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.content.studio.wizard.form</field>
+        <field name="model">ai_ce.content.studio.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Hermes Content Studio">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="topic" placeholder="e.g. Annual Flash Sale Promotion"/></h1>
+                    </div>
+                    <group>
+                        <group string="Channel &amp; Audience">
+                            <field name="channel"/>
+                            <field name="target_audience"/>
+                            <field name="campaign_goal"/>
+                        </group>
+                        <group string="Style &amp; Localization">
+                            <field name="tone"/>
+                            <field name="language"/>
+                            <field name="res_model" invisible="1"/>
+                            <field name="res_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook invisible="not is_generated">
+                        <page string="Headline &amp; Subject" name="subject_page">
+                            <group>
+                                <field name="generated_subject"/>
+                                <field name="generated_preheader"/>
+                            </group>
+                        </page>
+                        <page string="Responsive HTML Preview" name="html_page" invisible="channel not in ('email', 'general')">
+                            <field name="generated_body_html"/>
+                        </page>
+                        <page string="LINE Flex Message JSON" name="line_page" invisible="channel != 'line'">
+                            <field name="generated_line_flex"/>
+                        </page>
+                        <page string="Markdown / Article Copy" name="md_page" invisible="channel not in ('knowledge', 'social', 'general')">
+                            <field name="generated_markdown"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_generate_content" string="Craft Content with Hermes" type="object" class="btn-primary" invisible="is_generated"/>
+                    <button name="action_generate_content" string="Regenerate Variation" type="object" class="btn-secondary" invisible="not is_generated"/>
+                    <button name="action_inject_to_target" string="Inject into Document" type="object" class="btn-primary" invisible="not is_generated or not res_model"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_content_studio_wizard" model="ir.actions.act_window">
+        <field name="name">Hermes Content Studio</field>
+        <field name="res_model">ai_ce.content.studio.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

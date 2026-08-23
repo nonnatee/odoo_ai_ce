@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- OWL 3 Dashboard Client Action -->
+    <record id="action_ai_ce_dashboard" model="ir.actions.client">
+        <field name="name">AI Control Center</field>
+        <field name="tag">odoo_ai_ce_dashboard</field>
+        <field name="target">main</field>
+    </record>
+</odoo>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ai_ce.AiDashboard">
+        <div class="o_ai_dashboard_container">
+            <div class="o_ai_header d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>AI Framework Control Center</h1>
+                    <p>Real-time monitoring of AI providers, autonomous agents, Hermes sidecar, and security governance.</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-info me-2" t-on-click="loadDashboardData">
+                        <i class="fa fa-refresh me-1"/> Refresh
+                    </button>
+                    <button class="btn btn-primary" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_agent')">
+                        <i class="fa fa-robot me-1"/> Manage Agents
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Metric Cards -->
+            <div class="o_ai_metric_grid">
+                <div class="o_ai_card cursor-pointer" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_provider')">
+                    <div class="o_ai_card_title">Active AI Providers</div>
+                    <div class="o_ai_card_value">
+                        <t t-out="state.activeProviders"/> / <t t-out="state.providerCount"/>
+                    </div>
+                    <span class="o_ai_badge success">Connected</span>
+                </div>
+
+                <div class="o_ai_card cursor-pointer" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_model')">
+                    <div class="o_ai_card_title">Catalogued Models</div>
+                    <div class="o_ai_card_value"><t t-out="state.modelCount"/></div>
+                    <span class="o_ai_badge success">LLM &amp; Embeddings</span>
+                </div>
+
+                <div class="o_ai_card cursor-pointer" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_tool')">
+                    <div class="o_ai_card_title">Callable Tools</div>
+                    <div class="o_ai_card_value"><t t-out="state.toolCount"/></div>
+                    <span class="o_ai_badge success">ORM &amp; Custom Python</span>
+                </div>
+
+                <div class="o_ai_card cursor-pointer" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_consent')">
+                    <div class="o_ai_card_title">Pending HITL Approvals</div>
+                    <div class="o_ai_card_value"><t t-out="state.pendingConsents"/></div>
+                    <span t-attf-class="o_ai_badge #{state.pendingConsents > 0 ? 'warning' : 'success'}">
+                        <t t-out="state.pendingConsents > 0 ? 'Action Required' : 'All Clear'"/>
+                    </span>
+                </div>
+
+                <div class="o_ai_card">
+                    <div class="o_ai_card_title">Hermes Agent Sidecar</div>
+                    <div class="o_ai_card_value">
+                        <t t-out="state.hermesStatus.is_running ? 'Online' : 'Standby'"/>
+                    </div>
+                    <span t-attf-class="o_ai_badge #{state.hermesStatus.is_running ? 'success' : 'warning'}">
+                        Loopback IPC (127.0.0.1:8765)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Provider Status Table -->
+            <div class="o_ai_section_card">
+                <h3>Connected AI Providers</h3>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Provider</th>
+                                <th>Service Engine</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.providersList" t-as="prov" t-key="prov.id">
+                                <tr>
+                                    <td class="fw-bold"><t t-out="prov.name"/></td>
+                                    <td><t t-out="prov.service"/></td>
+                                    <td><t t-out="prov.priority"/></td>
+                                    <td>
+                                        <span t-attf-class="badge #{prov.connection_status === 'connected' ? 'bg-success' : (prov.connection_status === 'error' ? 'bg-danger' : 'bg-secondary')}">
+                                            <t t-out="prov.connection_status"/>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <i t-attf-class="fa #{prov.active ? 'fa-check-circle text-success' : 'fa-times-circle text-muted'}"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Security Audit Logs -->
+            <div class="o_ai_section_card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">Recent Security &amp; Execution Audit Trail</h3>
+                    <button class="btn btn-sm btn-link text-info" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_log')">
+                        View All Logs (<t t-out="state.totalLogs"/>)
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Origin</th>
+                                <th>Model</th>
+                                <th>Latency (ms)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.recentLogs" t-as="log" t-key="log.id">
+                                <tr>
+                                    <td class="small"><t t-out="log.timestamp"/></td>
+                                    <td><t t-out="log.user_id ? log.user_id[1] : 'System'"/></td>
+                                    <td><span class="badge bg-secondary"><t t-out="log.client_type"/></span></td>
+                                    <td><t t-out="log.model_used || '-'"/></td>
+                                    <td><t t-out="log.execution_time_ms ? log.execution_time_ms.toFixed(1) : '-'"/></td>
+                                    <td>
+                                        <span t-attf-class="badge #{log.status === 'success' ? 'bg-success' : (log.status === 'consent_blocked' ? 'bg-warning text-dark' : 'bg-danger')}">
+                                            <t t-out="log.status"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

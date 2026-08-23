@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_tool_view_list" model="ir.ui.view">
+        <field name="name">ai_ce.tool.list</field>
+        <field name="model">ai_ce.tool</field>
+        <field name="arch" type="xml">
+            <list string="AI Callable Tools">
+                <header>
+                    <button name="sync_decorated_tools" string="Sync Decorated Tools" type="object" class="btn-primary"/>
+                </header>
+                <field name="name"/>
+                <field name="implementation" widget="badge"/>
+                <field name="decorator_model"/>
+                <field name="decorator_method"/>
+                <field name="requires_user_consent" widget="boolean_toggle"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ai_ce_tool_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.tool.form</field>
+        <field name="model">ai_ce.tool</field>
+        <field name="arch" type="xml">
+            <form string="AI Tool Definition">
+                <header>
+                    <button name="%(action_ai_ce_test_tool_wizard)d" string="Test Tool Sandbox" type="action" class="btn-primary" context="{'default_tool_id': id}"/>
+                    <button name="sync_decorated_tools" string="Sync Decorated Tools" type="object" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. summarize_quotation"/></h1>
+                    </div>
+                    <group>
+                        <group string="Implementation">
+                            <field name="implementation"/>
+                            <field name="decorator_model" invisible="implementation != 'decorator'"/>
+                            <field name="decorator_method" invisible="implementation != 'decorator'"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Security &amp; Consent">
+                            <field name="requires_user_consent"/>
+                            <field name="required_consent_group_id"/>
+                            <field name="default_provider_id"/>
+                            <field name="default_model_id"/>
+                        </group>
+                    </group>
+                    <group string="LLM Tool Description">
+                        <field name="description" nolabel="1" placeholder="Explain what this tool does and what input parameters it accepts..."/>
+                    </group>
+                    <group string="Input JSON Schema">
+                        <field name="input_schema" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_tool" model="ir.actions.act_window">
+        <field name="name">AI Tools Registry</field>
+        <field name="res_model">ai_ce.tool</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

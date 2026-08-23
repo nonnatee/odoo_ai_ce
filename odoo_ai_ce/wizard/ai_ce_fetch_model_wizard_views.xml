@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_fetch_model_wizard_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.fetch.model.wizard.form</field>
+        <field name="model">ai_ce.fetch.model.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Discover Models from Provider">
+                <sheet>
+                    <group>
+                        <field name="provider_id" readonly="1"/>
+                    </group>
+                    <group string="Discovered Models" invisible="not line_ids">
+                        <field name="line_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="selected"/>
+                                <field name="name" readonly="1"/>
+                                <field name="model_use"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_fetch" string="Fetch from API" type="object" class="btn-secondary" invisible="line_ids"/>
+                    <button name="action_import" string="Import Selected Models" type="object" class="btn-primary" invisible="not line_ids"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_fetch_model_wizard" model="ir.actions.act_window">
+        <field name="name">Fetch Models</field>
+        <field name="res_model">ai_ce.fetch.model.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

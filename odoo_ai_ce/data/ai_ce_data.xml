@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default Provider: Local Ollama -->
+        <record id="provider_ollama_local" model="ai_ce.provider">
+            <field name="name">Local Ollama (Sovereign Inference)</field>
+            <field name="service">ollama</field>
+            <field name="api_base">http://localhost:11434/v1</field>
+            <field name="priority">10</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Default Models -->
+        <record id="model_llama3_2" model="ai_ce.model">
+            <field name="name">llama3.2</field>
+            <field name="provider_id" ref="provider_ollama_local"/>
+            <field name="model_use">chat</field>
+            <field name="context_window">8192</field>
+            <field name="supports_tools">True</field>
+            <field name="is_default">True</field>
+        </record>
+
+        <record id="model_nomic_embed" model="ai_ce.model">
+            <field name="name">nomic-embed-text</field>
+            <field name="provider_id" ref="provider_ollama_local"/>
+            <field name="model_use">embedding</field>
+            <field name="context_window">2048</field>
+            <field name="supports_tools">False</field>
+            <field name="is_default">True</field>
+        </record>
+
+        <!-- Update provider default bindings -->
+        <record id="provider_ollama_local" model="ai_ce.provider">
+            <field name="default_chat_model_id" ref="model_llama3_2"/>
+            <field name="default_embedding_model_id" ref="model_nomic_embed"/>
+        </record>
+
+        <!-- Built-in Tools -->
+        <record id="tool_search_records" model="ai_ce.tool">
+            <field name="name">search_records</field>
+            <field name="description">Search and read records from an Odoo model using domain criteria.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Odoo model technical name (e.g. sale.order, res.partner)"},
+                    "domain": {"type": "array", "description": "Odoo domain list (e.g. [['state', '=', 'sale']])"},
+                    "fields": {"type": "array", "items": {"type": "string"}, "description": "List of field names to read"},
+                    "limit": {"type": "integer", "description": "Maximum number of records to return (default: 20)"}
+                },
+                "required": ["model"]
+            }</field>
+        </record>
+
+        <record id="tool_create_record" model="ai_ce.tool">
+            <field name="name">create_record</field>
+            <field name="description">Create a new record in an Odoo model with specified field values.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Odoo model technical name"},
+                    "values": {"type": "object", "description": "Dictionary of field values to set"}
+                },
+                "required": ["model", "values"]
+            }</field>
+        </record>
+
+        <record id="tool_update_record" model="ai_ce.tool">
+            <field name="name">update_record</field>
+            <field name="description">Update existing records in an Odoo model by ID.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Odoo model technical name"},
+                    "ids": {"type": "array", "items": {"type": "integer"}, "description": "List of record IDs to update"},
+                    "values": {"type": "object", "description": "Dictionary of field values to write"}
+                },
+                "required": ["model", "ids", "values"]
+            }</field>
+        </record>
+
+        <record id="tool_delete_record" model="ai_ce.tool">
+            <field name="name">delete_record</field>
+            <field name="description">Permanently delete records from an Odoo model. Protected by consent gate.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">True</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Odoo model technical name"},
+                    "ids": {"type": "array", "items": {"type": "integer"}, "description": "List of record IDs to delete"}
+                },
+                "required": ["model", "ids"]
+            }</field>
+        </record>
+
+        <record id="tool_analyze_records" model="ai_ce.tool">
+            <field name="name">analyze_records</field>
+            <field name="description">Fetch records from an Odoo model and perform analytical reasoning / anomaly detection.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Odoo model technical name"},
+                    "question": {"type": "string", "description": "Analysis task or question to answer"},
+                    "domain": {"type": "array", "description": "Odoo domain list filter"},
+                    "fields": {"type": "array", "items": {"type": "string"}, "description": "Fields to inspect"},
+                    "limit": {"type": "integer", "description": "Record limit"}
+                },
+                "required": ["model", "question"]
+            }</field>
+        </record>
+
+        <!-- Default Autonomous Agent -->
+        <record id="agent_default_assistant" model="ai_ce.agent">
+            <field name="name">Odoo AI Assistant</field>
+            <field name="description">General-purpose intelligent ERP assistant with database query &amp; operations tools</field>
+            <field name="provider_id" ref="provider_ollama_local"/>
+            <field name="model_id" ref="model_llama3_2"/>
+            <field name="system_prompt">You are an intelligent, helpful AI Assistant embedded in Odoo ERP. You have access to database tools to assist users with business operations, document summarization, and data queries. Always be concise, factual, and helpful.</field>
+            <field name="tool_ids" eval="[(6, 0, [
+                ref('tool_search_records'),
+                ref('tool_create_record'),
+                ref('tool_update_record'),
+                ref('tool_delete_record'),
+                ref('tool_analyze_records')
+            ])]"/>
+            <field name="temperature">0.2</field>
+            <field name="max_iterations">8</field>
+        </record>
+
+        <!-- Default Resource Allowlists -->
+        <record id="resource_partner" model="ai_ce.resource">
+            <field name="name">Contacts &amp; Customers</field>
+            <field name="model_name">res.partner</field>
+            <field name="description">Customer, supplier, and partner profile records</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="resource_product_template" model="ai_ce.resource">
+            <field name="name">Product Templates</field>
+            <field name="model_name">product.template</field>
+            <field name="description">Product catalog, sales pricing, and descriptions</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="resource_sale_order" model="ai_ce.resource">
+            <field name="name">Sales Orders &amp; Quotations</field>
+            <field name="model_name">sale.order</field>
+            <field name="description">Customer sales quotations and confirmed orders</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="resource_project_task" model="ai_ce.resource">
+            <field name="name">Project Tasks</field>
+            <field name="model_name">project.task</field>
+            <field name="description">Project management tasks, issues, and deadlines</field>
+            <field name="sequence">40</field>
+        </record>
+    </data>
+</odoo>

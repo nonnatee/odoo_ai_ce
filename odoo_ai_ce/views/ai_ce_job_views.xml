@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_job_view_list" model="ir.ui.view">
+        <field name="name">ai_ce.job.list</field>
+        <field name="model">ai_ce.job</field>
+        <field name="arch" type="xml">
+            <list string="Hermes Background Jobs" decoration-info="state == 'pending'" decoration-warning="state == 'running'" decoration-success="state == 'done'" decoration-danger="state == 'failed'">
+                <field name="create_date"/>
+                <field name="name"/>
+                <field name="job_type" widget="badge"/>
+                <field name="res_model"/>
+                <field name="processed_items"/>
+                <field name="total_items"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="state" widget="badge"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ai_ce_job_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.job.form</field>
+        <field name="model">ai_ce.job</field>
+        <field name="arch" type="xml">
+            <form string="Hermes Background Job">
+                <header>
+                    <button name="action_run_job" string="Execute / Retry" type="object" class="btn-primary" invisible="state not in ('pending', 'failed')"/>
+                    <button name="action_cancel_job" string="Cancel" type="object" class="btn-danger" invisible="state not in ('pending', 'running')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,running,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Job Specifications">
+                            <field name="job_type"/>
+                            <field name="res_model"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="sidecar_id" readonly="1"/>
+                        </group>
+                        <group string="Progress &amp; Timing">
+                            <field name="total_items"/>
+                            <field name="processed_items"/>
+                            <field name="progress" widget="progressbar"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                        </group>
+                    </group>
+                    <group string="Target Record IDs">
+                        <field name="res_ids" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Execution Logs" invisible="not error_log">
+                        <field name="error_log" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_job" model="ir.actions.act_window">
+        <field name="name">Background Jobs</field>
+        <field name="res_model">ai_ce.job</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

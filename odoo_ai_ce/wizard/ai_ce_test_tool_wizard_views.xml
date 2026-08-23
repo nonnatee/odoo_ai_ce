@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_test_tool_wizard_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.test.tool.wizard.form</field>
+        <field name="model">ai_ce.test.tool.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sandbox Tool Testing Harness">
+                <sheet>
+                    <group>
+                        <field name="tool_id" readonly="1"/>
+                        <field name="commit_changes"/>
+                    </group>
+                    <group string="Arguments (JSON)">
+                        <field name="params_json" nolabel="1" placeholder='{"model": "res.partner", "limit": 5}'/>
+                    </group>
+                    <group string="Execution Result" invisible="not execution_result">
+                        <group>
+                            <field name="status"/>
+                            <field name="execution_time_ms"/>
+                        </group>
+                        <field name="execution_result" nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_execute" string="Execute in Sandbox" type="object" class="btn-primary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_test_tool_wizard" model="ir.actions.act_window">
+        <field name="name">Test Tool</field>
+        <field name="res_model">ai_ce.test.tool.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

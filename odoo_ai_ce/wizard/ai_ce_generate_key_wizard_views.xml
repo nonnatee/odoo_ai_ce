@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_generate_key_wizard_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.generate.key.wizard.form</field>
+        <field name="model">ai_ce.generate.key.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate MCP Integration Key">
+                <sheet>
+                    <group>
+                        <field name="platform" readonly="generated_key"/>
+                        <field name="generated_key" readonly="1" invisible="not generated_key"/>
+                    </group>
+                    <group string="Configuration JSON (Copy to Client Config)" invisible="not config_snippet">
+                        <field name="config_snippet" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_generate_key" string="Generate &amp; Save Key" type="object" class="btn-primary" invisible="generated_key"/>
+                    <button string="Done" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_generate_key_wizard" model="ir.actions.act_window">
+        <field name="name">Generate MCP Key</field>
+        <field name="res_model">ai_ce.generate.key.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

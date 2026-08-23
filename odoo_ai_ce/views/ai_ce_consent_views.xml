@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_ce_consent_view_list" model="ir.ui.view">
+        <field name="name">ai_ce.consent.list</field>
+        <field name="model">ai_ce.consent</field>
+        <field name="arch" type="xml">
+            <list string="Pending Approvals" decoration-warning="state == 'pending'" decoration-success="state == 'granted'" decoration-danger="state == 'denied'">
+                <field name="create_date"/>
+                <field name="tool_id"/>
+                <field name="user_id"/>
+                <field name="action_summary"/>
+                <field name="state" widget="badge"/>
+                <field name="decided_by_uid"/>
+                <field name="decision_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ai_ce_consent_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.consent.form</field>
+        <field name="model">ai_ce.consent</field>
+        <field name="arch" type="xml">
+            <form string="Human-in-the-Loop Consent Request">
+                <header>
+                    <button name="action_approve_and_execute" string="Approve &amp; Execute" type="object" class="btn-primary" invisible="state != 'pending'"/>
+                    <button name="action_reject" string="Reject Action" type="object" class="btn-danger" invisible="state != 'pending'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,granted,denied"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Request Details">
+                            <field name="tool_id" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="session_id" readonly="1"/>
+                        </group>
+                        <group string="Decision Details">
+                            <field name="decided_by_uid" readonly="1"/>
+                            <field name="decision_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Action Summary">
+                        <field name="action_summary" readonly="1"/>
+                    </group>
+                    <group string="Parameters Payload (JSON)">
+                        <field name="parameters_json" readonly="1"/>
+                    </group>
+                    <group string="Execution Result" invisible="not execution_result">
+                        <field name="execution_result" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_ce_consent" model="ir.actions.act_window">
+        <field name="name">Pending Approvals</field>
+        <field name="res_model">ai_ce.consent</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+</odoo>

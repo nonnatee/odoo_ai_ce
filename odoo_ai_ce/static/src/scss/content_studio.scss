@@ -1,0 +1,46 @@
+/* Hermes Content Studio & Product Enrichment Styling */
+
+.o_hermes_studio_preview {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    color: #f1f5f9;
+    font-family: inherit;
+    margin-top: 10px;
+
+    .o_preview_tag {
+        display: inline-block;
+        background: #1e3a8a;
+        color: #93c5fd;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+}
+
+.o_lead_score_badge {
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+
+    &.high {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    &.medium {
+        background: rgba(234, 179, 8, 0.15);
+        color: #eab308;
+        border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+    &.low {
+        background: rgba(148, 163, 184, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+}

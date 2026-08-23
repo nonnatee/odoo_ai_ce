@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Security Category -->
+        <record id="module_category_ai_ce" model="ir.module.category">
+            <field name="name">AI Community Edition</field>
+            <field name="description">Manage AI providers, agents, tools, and security consents</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- User Group -->
+        <record id="group_ai_ce_user" model="res.groups">
+            <field name="name">AI User (Ask AI &amp; Editor)</field>
+            <field name="category_id" ref="module_category_ai_ce"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Consent Approver Group -->
+        <record id="group_ai_ce_consent_approver" model="res.groups">
+            <field name="name">AI Consent Approver (HITL)</field>
+            <field name="category_id" ref="module_category_ai_ce"/>
+            <field name="implied_ids" eval="[(4, ref('group_ai_ce_user'))]"/>
+        </record>
+
+        <!-- Manager Group -->
+        <record id="group_ai_ce_manager" model="res.groups">
+            <field name="name">AI Administrator (Full Control)</field>
+            <field name="category_id" ref="module_category_ai_ce"/>
+            <field name="implied_ids" eval="[(4, ref('group_ai_ce_consent_approver'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+    </data>
+
+    <data noupdate="1">
+        <!-- Record Rule: User Session Isolation -->
+        <record id="rule_ai_ce_session_user" model="ir.rule">
+            <field name="name">AI Session: Own Sessions Only for Standard Users</field>
+            <field name="model_id" ref="model_ai_ce_session"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_ai_ce_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Record Rule: Manager Sees All Sessions -->
+        <record id="rule_ai_ce_session_manager" model="ir.rule">
+            <field name="name">AI Session: Manager Sees All</field>
+            <field name="model_id" ref="model_ai_ce_session"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_ai_ce_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+    </data>
+</odoo>

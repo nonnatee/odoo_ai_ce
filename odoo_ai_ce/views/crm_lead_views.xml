@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_inherit_ai_ce" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.ai.ce</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="priority" eval="30"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_lead_enrich_wizard" string="Profile with Hermes" type="object" class="btn-secondary" icon="fa-bolt"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Lead Intelligence" name="ai_lead_intelligence">
+                    <group>
+                        <group string="Company &amp; Domain Profiling">
+                            <field name="ai_company_industry"/>
+                            <field name="ai_company_size"/>
+                            <field name="ai_last_profiled"/>
+                        </group>
+                        <group string="Qualification &amp; Buying Signals">
+                            <field name="ai_qualification_score" widget="progressbar"/>
+                            <field name="ai_buying_intent" widget="badge"/>
+                        </group>
+                    </group>
+                    <group string="Customer Pain Points &amp; Requirements">
+                        <field name="ai_key_pain_points" nolabel="1"/>
+                    </group>
+                    <group string="Suggested Sales Strategy &amp; Draft Response">
+                        <field name="ai_suggested_response" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
