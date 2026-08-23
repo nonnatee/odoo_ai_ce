@@ -16,8 +16,8 @@ Enterprise-grade AI Framework and Hermes Agent Integration for Odoo 19 CE:
 * **Local Hermes Sidecar**: Loopback IPC on 127.0.0.1:8765 with real-time SSE streaming.
 * **Zero-Trust Security**: Human-in-the-loop consent queue, strict resource allowlist, and per-user audit logging.
     """,
-    'author': 'Antigravity / Google DeepMind',
-    'website': 'https://github.com/odoo-ai-ce',
+    'author': 'Nonnatee Kanjana',
+    'website': 'https://github.com/nonnatee/odoo_ai_ce',
     'license': 'LGPL-3',
     'depends': [
         'base',
