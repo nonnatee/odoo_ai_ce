@@ -59,3 +59,6 @@ analysis/scratch/probe_fields.py
 analysis/scratch/probe_groups.py
 analysis/scratch/probe_selections.py
 analysis/scratch/probe_view_arch.py
+analysis/__pycache__/mcp_probe.cpython-312.pyc
+analysis/scratch/probe_res_groups.py
+analysis/scratch/probe_sample_groups.py

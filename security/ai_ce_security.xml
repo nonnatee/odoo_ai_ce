@@ -11,21 +11,18 @@
         <!-- User Group -->
         <record id="group_ai_ce_user" model="res.groups">
             <field name="name">AI User (Ask AI &amp; Editor)</field>
-            <field name="category_id" ref="module_category_ai_ce"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
         <!-- Consent Approver Group -->
         <record id="group_ai_ce_consent_approver" model="res.groups">
             <field name="name">AI Consent Approver (HITL)</field>
-            <field name="category_id" ref="module_category_ai_ce"/>
             <field name="implied_ids" eval="[(4, ref('group_ai_ce_user'))]"/>
         </record>
 
         <!-- Manager Group -->
         <record id="group_ai_ce_manager" model="res.groups">
             <field name="name">AI Administrator (Full Control)</field>
-            <field name="category_id" ref="module_category_ai_ce"/>
             <field name="implied_ids" eval="[(4, ref('group_ai_ce_consent_approver'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         </record>
