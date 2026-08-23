@@ -3,6 +3,7 @@
 import { Component, useState } from "@odoo/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 export class AskAiModal extends Component {
     static template = "odoo_ai_ce.AskAiModal";
@@ -13,7 +14,6 @@ export class AskAiModal extends Component {
     };
 
     setup() {
-        this.rpc = useService("rpc");
         this.notification = useService("notification");
         this.state = useState({
             inputPrompt: "",
@@ -37,7 +37,7 @@ export class AskAiModal extends Component {
         this.state.isLoading = true;
 
         try {
-            const response = await this.rpc("/ai_ce/ask", {
+            const response = await rpc("/ai_ce/ask", {
                 prompt: prompt,
                 session_id: this.state.sessionId,
                 record_context: this.props.recordContext || {},

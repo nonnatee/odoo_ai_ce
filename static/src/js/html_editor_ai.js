@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
+import { rpc } from "@web/core/network/rpc";
 
 export const htmlEditorAiPlugin = {
     name: "html_editor_ai",
@@ -18,8 +19,6 @@ export const htmlEditorAiPlugin = {
                     if (!prompt) return;
 
                     try {
-                        const env = odoo.__WOWL_DEBUG__.root.env;
-                        const rpc = env.services.rpc;
                         const res = await rpc("/ai_ce/ask", { prompt: prompt });
                         if (res && res.answer) {
                             editor.insertText(res.answer);

@@ -3,13 +3,13 @@
 import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 export class AiCeDashboard extends Component {
     static template = "odoo_ai_ce.AiDashboard";
 
     setup() {
         this.orm = useService("orm");
-        this.rpc = useService("rpc");
         this.action = useService("action");
         this.notification = useService("notification");
 
@@ -40,7 +40,7 @@ export class AiCeDashboard extends Component {
                 this.orm.searchCount("ai_ce.tool", [("active", "=", true)]),
                 this.orm.searchCount("ai_ce.consent", [("state", "=", "pending")]),
                 this.orm.searchCount("ai_ce.log", []),
-                this.rpc("/ai_ce/hermes/status", {}).catch(() => ({ is_running: false })),
+                rpc("/ai_ce/hermes/status", {}).catch(() => ({ is_running: false })),
             ]);
 
             this.state.providerCount = providers.length;
