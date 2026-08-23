@@ -63,3 +63,4 @@ analysis/__pycache__/mcp_probe.cpython-312.pyc
 analysis/scratch/probe_res_groups.py
 analysis/scratch/probe_sample_groups.py
 analysis/scratch/__pycache__/probe_sample_groups.cpython-312.pyc
+analysis/scratch/__pycache__/probe_act_window_target.cpython-312.pyc
