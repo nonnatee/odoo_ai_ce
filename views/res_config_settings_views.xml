@@ -10,10 +10,10 @@
                 <app data-string="AI Settings" string="AI Framework" name="odoo_ai_ce">
                     <block title="Provider &amp; Routing Defaults">
                         <setting id="default_provider_setting" string="Default AI Provider" help="Select primary provider for Ask AI and Chatter synthesis">
-                            <field name="default_ai_provider_id"/>
+                            <field name="ai_default_provider_id"/>
                         </setting>
                         <setting id="default_model_setting" string="Default Chat Model" help="Default LLM model identifier">
-                            <field name="default_ai_model_id"/>
+                            <field name="ai_default_model_id"/>
                         </setting>
                     </block>
                     <block title="Security &amp; Sidecar Governance">

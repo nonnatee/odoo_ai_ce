@@ -4,12 +4,12 @@ from odoo import models, fields
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    default_ai_provider_id = fields.Many2one(
+    ai_default_provider_id = fields.Many2one(
         'ai_ce.provider',
         string="Default AI Provider",
         config_parameter='odoo_ai_ce.default_provider_id'
     )
-    default_ai_model_id = fields.Many2one(
+    ai_default_model_id = fields.Many2one(
         'ai_ce.model',
         string="Default Chat Model",
         config_parameter='odoo_ai_ce.default_model_id'
