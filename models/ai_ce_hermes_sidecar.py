@@ -32,9 +32,18 @@ class AiCeHermesSidecar(models.Model):
     active_acp_sessions = fields.Integer(string="Active ACP Sessions", readonly=True)
     
     is_running = fields.Boolean(string="Health Status", default=False, readonly=True)
+    state = fields.Selection([
+        ('stopped', 'Stopped'),
+        ('running', 'Running'),
+    ], string="Status", compute="_compute_state", store=True, readonly=True)
     last_heartbeat = fields.Datetime(string="Last Heartbeat", readonly=True)
     version = fields.Char(string="Sidecar Version", readonly=True)
     active = fields.Boolean(string="Active", default=True)
+
+    @api.depends('is_running')
+    def _compute_state(self):
+        for rec in self:
+            rec.state = 'running' if rec.is_running else 'stopped'
 
     def _get_runner_script_path(self):
         """Resolves absolute path to hermes_sidecar_runner.py."""

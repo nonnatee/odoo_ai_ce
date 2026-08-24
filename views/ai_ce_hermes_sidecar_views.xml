@@ -9,7 +9,7 @@
                 <field name="name"/>
                 <field name="host"/>
                 <field name="port"/>
-                <field name="is_running" widget="badge" decoration-success="is_running" decoration-danger="not is_running"/>
+                <field name="state" widget="badge" decoration-success="state == 'running'" decoration-danger="state == 'stopped'"/>
                 <field name="process_pid"/>
                 <field name="memory_mb"/>
                 <field name="active_acp_sessions"/>
@@ -30,7 +30,7 @@
                     <button name="action_restart_process" string="Restart Daemon" type="object" class="btn-warning" invisible="not is_running"/>
                     <button name="action_stop_process" string="Stop Daemon" type="object" class="btn-danger" invisible="not is_running" confirm="Are you sure you want to stop the local Hermes Sidecar daemon?"/>
                     <button name="action_ping_sidecar" string="Health Check" type="object" class="btn-secondary"/>
-                    <field name="is_running" widget="statusbar" statusbar_visible="True"/>
+                    <field name="state" widget="statusbar" statusbar_visible="stopped,running"/>
                 </header>
                 <sheet>
                     <div class="oe_title">

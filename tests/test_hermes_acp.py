@@ -90,6 +90,7 @@ class TestHermesAcp(TransactionCase):
         res = self.sidecar.action_stop_process()
         self.assertEqual(self.sidecar.process_pid, 0)
         self.assertFalse(self.sidecar.is_running)
+        self.assertEqual(self.sidecar.state, 'stopped')
 
     def test_hermes_provider_effective_url(self):
         """Test Hermes provider URL generation."""
