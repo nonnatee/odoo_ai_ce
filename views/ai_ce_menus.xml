@@ -25,5 +25,6 @@
     <menuitem id="menu_ai_ce_config_root" name="Configuration" parent="menu_ai_ce_root" sequence="40" groups="group_ai_ce_manager"/>
     <menuitem id="menu_ai_ce_providers" name="AI Providers" parent="menu_ai_ce_config_root" sequence="10" action="action_ai_ce_provider"/>
     <menuitem id="menu_ai_ce_models" name="Model Catalog" parent="menu_ai_ce_config_root" sequence="20" action="action_ai_ce_model"/>
+    <menuitem id="menu_ai_ce_sidecar_supervisor" name="Hermes Supervisor" parent="menu_ai_ce_config_root" sequence="25" action="action_ai_ce_hermes_sidecar"/>
     <menuitem id="menu_ai_ce_settings" name="Settings" parent="menu_ai_ce_config_root" sequence="30" action="action_ai_ce_config_settings"/>
 </odoo>

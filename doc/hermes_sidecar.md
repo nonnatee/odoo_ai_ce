@@ -1,78 +1,53 @@
-# Hermes Agent Sidecar & Asynchronous Job Queue
+# Hermes Agent Sidecar & ACP (Agent Communication Protocol) Supervisor
 
-The **Hermes Agent Sidecar** is a lightweight, high-performance background daemon that runs alongside Odoo on loopback `127.0.0.1:8765`. It acts as an autonomous worker supervisor, executing multi-step batch tasks (e.g. catalog enrichment across 1,000 products, web research, or vector embedding generation) without blocking Odoo's web request threads.
+The **Hermes Agent Sidecar** is a local autonomous agent runtime and subprocess daemon that runs alongside Odoo on loopback `127.0.0.1:8765`.
+
+It provides three core capabilities:
+1. **Agent Communication Protocol (ACP) Engine (`hermes-acp`)**: Stateful agent sessions, step-by-step reasoning thought chains, Human-in-the-Loop (HITL) consent state machines, and native bridge to Odoo's MCP Gateway (`/ai_ce/mcp_gateway`).
+2. **OpenAI-Compatible Chat Completions (`/v1/chat/completions`)**: Exposes standard OpenAI completions with function calling, allowing Hermes models (`hermes-3-llama-3.1`) to act as a first-class AI Provider in Odoo.
+3. **Subprocess Supervisor**: Odoo-managed lifecycle (auto-spawn, start, stop, restart, PID/memory telemetry) with multithreaded background job execution.
 
 ---
 
-## 🏗️ Architecture & Interaction Flow
+## 🏗️ Architecture & Protocol Stack
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin as User / Admin
-    participant Odoo as Odoo Web Server (:8069)
-    participant JobQueue as ai_ce.job Queue
-    participant Sidecar as Hermes Sidecar (:8765)
-    participant Worker as Sidecar Worker Thread
-    participant LLM as AI Provider / LLM
-
-    Admin->>Odoo: Enqueue Batch Product Enrichment (100 items)
-    Odoo->>JobQueue: Create ai_ce.job (state="pending")
-    JobQueue->>Sidecar: POST /tasks/dispatch (Job ID, Model, Record IDs)
-    Sidecar-->>JobQueue: HTTP 200 (dispatched)
-    Sidecar->>Worker: Spawn background worker thread
-
-    loop For each item in batch
-        Worker->>LLM: Perform enrichment / reasoning
-        LLM-->>Worker: Return result
-        Worker->>Odoo: POST /ai_ce/hermes/webhook (event="progress_update", processed=N)
-        Odoo->>JobQueue: Update processed_items & progress percentage
+graph TD
+    subgraph Odoo 19 CE Web Client & Backend
+        UI[Ask AI Dialog / AI Dashboard / OWL 3]
+        ORM[ai_ce.hermes_sidecar / ai_ce.provider]
+        MCP[MCP Gateway /ai_ce/mcp_gateway]
+        Job[Batch Job Queue ai_ce.job]
     end
 
-    Worker->>Odoo: POST /ai_ce/hermes/webhook (event="task_completed")
-    Odoo->>JobQueue: Mark job state="done"
+    subgraph Local Hermes Daemon (:8765)
+        Supervisor[Process Supervisor & Telemetry]
+        OpenAI[/v1/chat/completions OpenAI Endpoint]
+        ACP[Hermes ACP Engine & Session Manager]
+        Pool[Multithreaded Task Worker Pool]
+    end
+
+    subgraph LLM Backend
+        Ollama[Local Ollama / vLLM / Nous Hermes]
+    end
+
+    UI -->|Ask AI & Live Thoughts| ORM
+    UI -->|Start / Stop / Restart| ORM
+    ORM -->|Subprocess Control & Health| Supervisor
+    ORM -->|OpenAI Chat Request| OpenAI
+    ORM -->|ACP Prompt & Streaming| ACP
+    ACP -->|Tool Invocations| MCP
+    Job -->|Submit Batch Tasks| Pool
+    Pool -->|Webhook Progress Checkpoints| Job
+    OpenAI --> Ollama
+    ACP --> Ollama
 ```
 
 ---
 
-## 🚀 Running the Sidecar
+## 📡 API Specifications
 
-### Direct Execution
-From the root of your Odoo installation:
-```bash
-python odoo_ai_ce/sidecar/hermes_sidecar_runner.py
-```
-
-### Running as a systemd Service (Linux Production)
-Create `/etc/systemd/system/hermes-sidecar.service`:
-```ini
-[Unit]
-Description=Hermes Agent Sidecar for Odoo
-After=network.target
-
-[Service]
-Type=simple
-User=odoo
-WorkingDirectory=/opt/odoo/custom_addons/odoo_ai_ce
-ExecStart=/usr/bin/python3 /opt/odoo/custom_addons/odoo_ai_ce/sidecar/hermes_sidecar_runner.py
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start the service:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now hermes-sidecar
-```
-
----
-
-## 📡 REST API & Health Endpoints
-
-### 1. Health Status (`GET /health`)
+### 1. Process Telemetry (`GET /health` or `GET /status`)
 ```bash
 curl http://127.0.0.1:8765/health
 ```
@@ -80,33 +55,70 @@ Response:
 ```json
 {
   "status": "healthy",
-  "version": "1.1.0",
-  "uptime": 1771804800.0,
-  "agent": "Hermes Autonomous Supervisor & Worker Pool",
-  "active_workers": 2
-}
-```
-
-### 2. Dispatch Task (`POST /tasks/dispatch`)
-Request Payload:
-```json
-{
-  "task": "Batch Product Catalog Enrichment",
-  "callback_url": "http://127.0.0.1:8069/ai_ce/hermes/webhook",
-  "payload": {
-    "job_id": 42,
-    "job_type": "product_enrich",
-    "res_model": "product.template",
-    "res_ids": [101, 102, 103, 104, 105]
+  "version": "19.0.2.0-hermes-acp",
+  "telemetry": {
+    "pid": 14220,
+    "uptime_seconds": 1240,
+    "memory_mb": 42.5,
+    "cpu_percent": 0.4,
+    "active_threads": 4,
+    "active_acp_sessions": 1,
+    "active_tasks_count": 0
+  },
+  "acp_capabilities": {
+    "protocol_version": "2026-01-acp.v1",
+    "agent_type": "hermes_autonomous_executor",
+    "capabilities": {
+      "streaming_sse": true,
+      "multi_turn_dialog": true,
+      "tool_calling": true,
+      "human_in_the_loop": true,
+      "mcp_bridge": true,
+      "session_persistence": true
+    }
   }
 }
 ```
 
+### 2. OpenAI-Compatible Chat (`POST /v1/chat/completions`)
+```bash
+curl -X POST http://127.0.0.1:8765/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "hermes-3-llama-3.1",
+    "messages": [
+      {"role": "system", "content": "You are Hermes."},
+      {"role": "user", "content": "Explain CRM qualification scoring."}
+    ]
+  }'
+```
+
+### 3. ACP Session Management (`POST /v1/acp/sessions/create`)
+```bash
+curl -X POST http://127.0.0.1:8765/v1/acp/sessions/create \
+  -H "Content-Type: application/json" \
+  -d '{"metadata": {"user_id": 1}}'
+```
+Response:
+```json
+{
+  "session_id": "acp_sess_8f3d1e4c92ab",
+  "status": "created",
+  "capabilities": { ... }
+}
+```
+
+### 4. ACP Turn Execution (`POST /v1/acp/sessions/<id>/prompt`)
+Streams thought events, tool calls, and final answers over SSE or structured JSON.
+
 ---
 
-## 📊 Managing Background Jobs in Odoo
+## 🛠️ Odoo Supervisor Controls
 
-1. Navigate to **AI Hub > Agentic Operations > Background Jobs**.
-2. View all queued, in-progress, completed, and failed tasks.
-3. Inspect live progress percentage, processed item count, and real-time execution logs.
-4. Click **"Execute / Retry"** or **"Cancel"** on any job record.
+Administrators can manage the local Hermes agent directly from Odoo:
+1. **AI Hub > Configuration > Hermes Supervisor**:
+   - **Start Daemon**: Spawns detached daemon using the configured Python interpreter.
+   - **Restart Daemon**: Performs a clean restart.
+   - **Stop Daemon**: Gracefully halts the background process.
+   - **Health Check**: Pings `/health` and records live RAM/CPU metrics.
+2. **AI Control Center Dashboard**: Live telemetry widget with single-click start/stop and real-time status indicators.

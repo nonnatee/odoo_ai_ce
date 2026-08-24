@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hermes Sidecar List View -->
+    <record id="ai_ce_hermes_sidecar_view_list" model="ir.ui.view">
+        <field name="name">ai_ce.hermes_sidecar.list</field>
+        <field name="model">ai_ce.hermes_sidecar</field>
+        <field name="arch" type="xml">
+            <list string="Hermes Sidecar Supervisors">
+                <field name="name"/>
+                <field name="host"/>
+                <field name="port"/>
+                <field name="is_running" widget="badge" decoration-success="is_running" decoration-danger="not is_running"/>
+                <field name="process_pid"/>
+                <field name="memory_mb"/>
+                <field name="active_acp_sessions"/>
+                <field name="last_heartbeat"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Hermes Sidecar Form View -->
+    <record id="ai_ce_hermes_sidecar_view_form" model="ir.ui.view">
+        <field name="name">ai_ce.hermes_sidecar.form</field>
+        <field name="model">ai_ce.hermes_sidecar</field>
+        <field name="arch" type="xml">
+            <form string="Hermes Sidecar &amp; ACP Supervisor">
+                <header>
+                    <button name="action_start_process" string="Start Daemon" type="object" class="btn-success" invisible="is_running"/>
+                    <button name="action_restart_process" string="Restart Daemon" type="object" class="btn-warning" invisible="not is_running"/>
+                    <button name="action_stop_process" string="Stop Daemon" type="object" class="btn-danger" invisible="not is_running" confirm="Are you sure you want to stop the local Hermes Sidecar daemon?"/>
+                    <button name="action_ping_sidecar" string="Health Check" type="object" class="btn-secondary"/>
+                    <field name="is_running" widget="statusbar" statusbar_visible="True"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Process &amp; Network Configuration">
+                            <field name="host"/>
+                            <field name="port"/>
+                            <field name="python_path"/>
+                            <field name="auto_spawn"/>
+                            <field name="auth_token" password="True"/>
+                        </group>
+                        <group string="Live Telemetry &amp; ACP Runtime">
+                            <field name="process_pid"/>
+                            <field name="memory_mb"/>
+                            <field name="cpu_percent"/>
+                            <field name="active_acp_sessions"/>
+                            <field name="version"/>
+                            <field name="last_heartbeat"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_ai_ce_hermes_sidecar" model="ir.actions.act_window">
+        <field name="name">Hermes Agent Supervisor</field>
+        <field name="res_model">ai_ce.hermes_sidecar</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

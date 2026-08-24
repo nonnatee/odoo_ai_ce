@@ -29,10 +29,12 @@ class AiCeAgent(models.Model):
     def run_agent(self, user_prompt, session=None, record_context=None, user_id=None):
         """
         Execute the autonomous multi-turn agent reasoning loop.
+        Returns answer, session_id, and thought_chain for step-by-step UI visualization.
         """
         self.ensure_one()
         caller_uid = user_id or self.env.uid
         start_time = time.time()
+        thought_chain = []
         
         # 1. Initialize or load conversation session
         if not session:
@@ -42,10 +44,19 @@ class AiCeAgent(models.Model):
                 'user_id': caller_uid,
             })
             
+        thought_chain.append({
+            "type": "thought",
+            "content": f"Initializing reasoning session #{session.id} with agent '{self.name}'."
+        })
+
         # 2. Build contextual prompt with Active Record & RAG
         context_parts = []
         if record_context:
             context_parts.append(f"### Current Record Context:\n{json.dumps(record_context, indent=2, default=str)}")
+            thought_chain.append({
+                "type": "thought",
+                "content": f"Injected active record context for model '{record_context.get('model', 'unknown')}'."
+            })
             
         # Retrieve vector embeddings RAG
         relevant_chunks = self.env['ai_ce.vector.chunk'].search_similar(
@@ -54,6 +65,10 @@ class AiCeAgent(models.Model):
         if relevant_chunks:
             rag_text = "\n\n".join([f"Source [{c['res_model']}:{c['res_id']}]:\n{c['text']}" for c in relevant_chunks])
             context_parts.append(f"### Retrieved Grounded Knowledge:\n{rag_text}")
+            thought_chain.append({
+                "type": "thought",
+                "content": f"Retrieved {len(relevant_chunks)} grounding knowledge chunks from vector store."
+            })
             
         # Assemble message history
         messages = [{"role": "system", "content": self.system_prompt}]
@@ -72,10 +87,14 @@ class AiCeAgent(models.Model):
         iteration = 0
         final_answer = ""
         last_tool_id = False
+        pending_consent_id = False
         
         while iteration < self.max_iterations:
             iteration += 1
-            _logger.info("Agent %s turn %d executing...", self.name, iteration)
+            thought_chain.append({
+                "type": "thought",
+                "content": f"Turn {iteration}: Formulating response & checking tool requirements."
+            })
             
             # Call provider
             model_name = self.model_id.name if self.model_id else None
@@ -93,6 +112,10 @@ class AiCeAgent(models.Model):
                 # Agent completed reasoning, final answer reached
                 final_answer = content
                 session.add_message("assistant", final_answer)
+                thought_chain.append({
+                    "type": "thought",
+                    "content": "Reasoning complete. Final response synthesized."
+                })
                 break
                 
             # Process tool calls
@@ -111,6 +134,13 @@ class AiCeAgent(models.Model):
                 except Exception:
                     tool_args = {}
                     
+                thought_chain.append({
+                    "type": "tool_call",
+                    "tool": tool_name,
+                    "arguments": tool_args,
+                    "content": f"Invoking tool `{tool_name}` with arguments: {json.dumps(tool_args, default=str)}"
+                })
+
                 tool_record = self.tool_ids.filtered(lambda t: t.name == tool_name)
                 if not tool_record:
                     tool_output = {"error": f"Tool '{tool_name}' is not authorized for this agent."}
@@ -122,6 +152,12 @@ class AiCeAgent(models.Model):
                         _logger.exception("Error executing tool %s", tool_name)
                         tool_output = {"error": str(e)}
                         
+                thought_chain.append({
+                    "type": "tool_result",
+                    "tool": tool_name,
+                    "result": tool_output
+                })
+
                 # Append tool response
                 tool_msg = {
                     "role": "tool",
@@ -134,8 +170,15 @@ class AiCeAgent(models.Model):
                 
                 # If tool required consent, pause execution
                 if isinstance(tool_output, dict) and tool_output.get("_status") == "consent_required":
-                    final_answer = f"⚠️ Tool `{tool_name}` requires user approval before execution. Pending approval request #{tool_output.get('consent_id')} has been created."
+                    pending_consent_id = tool_output.get('consent_id')
+                    final_answer = f"⚠️ Tool `{tool_name}` requires user approval before execution. Pending approval request #{pending_consent_id} has been created."
                     session.add_message("assistant", final_answer)
+                    thought_chain.append({
+                        "type": "consent_required",
+                        "consent_id": pending_consent_id,
+                        "tool": tool_name,
+                        "content": f"Paused execution: Tool `{tool_name}` requires Human-in-the-Loop approval."
+                    })
                     break
 
         if not final_answer and iteration >= self.max_iterations:
@@ -159,5 +202,7 @@ class AiCeAgent(models.Model):
             "session_id": session.id,
             "answer": final_answer,
             "iterations": iteration,
-            "execution_time_ms": elapsed_ms
+            "execution_time_ms": elapsed_ms,
+            "thought_chain": thought_chain,
+            "pending_consent_id": pending_consent_id,
         }

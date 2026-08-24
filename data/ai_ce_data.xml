@@ -1,7 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- Default Provider: Local Ollama -->
+        <!-- Default Hermes Sidecar Instance -->
+        <record id="sidecar_hermes_local" model="ai_ce.hermes_sidecar">
+            <field name="name">Local Hermes Sidecar &amp; ACP Supervisor</field>
+            <field name="host">127.0.0.1</field>
+            <field name="port">8765</field>
+            <field name="auto_spawn">True</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Default Provider: Hermes Agent Sidecar -->
+        <record id="provider_hermes_local" model="ai_ce.provider">
+            <field name="name">Local Hermes Agent (ACP / Sovereign)</field>
+            <field name="service">hermes</field>
+            <field name="api_base">http://127.0.0.1:8765/v1</field>
+            <field name="priority">5</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="model_hermes_3" model="ai_ce.model">
+            <field name="name">hermes-3-llama-3.1</field>
+            <field name="provider_id" ref="provider_hermes_local"/>
+            <field name="model_use">chat</field>
+            <field name="context_window">16384</field>
+            <field name="supports_tools">True</field>
+            <field name="is_default">True</field>
+        </record>
+
+        <record id="provider_hermes_local" model="ai_ce.provider">
+            <field name="default_chat_model_id" ref="model_hermes_3"/>
+        </record>
+
+        <!-- Provider: Local Ollama -->
         <record id="provider_ollama_local" model="ai_ce.provider">
             <field name="name">Local Ollama (Sovereign Inference)</field>
             <field name="service">ollama</field>
@@ -121,8 +152,8 @@
         <record id="agent_default_assistant" model="ai_ce.agent">
             <field name="name">Odoo AI Assistant</field>
             <field name="description">General-purpose intelligent ERP assistant with database query &amp; operations tools</field>
-            <field name="provider_id" ref="provider_ollama_local"/>
-            <field name="model_id" ref="model_llama3_2"/>
+            <field name="provider_id" ref="provider_hermes_local"/>
+            <field name="model_id" ref="model_hermes_3"/>
             <field name="system_prompt">You are an intelligent, helpful AI Assistant embedded in Odoo ERP. You have access to database tools to assist users with business operations, document summarization, and data queries. Always be concise, factual, and helpful.</field>
             <field name="tool_ids" eval="[(6, 0, [
                 ref('tool_search_records'),

@@ -8,3 +8,4 @@ from . import test_product_enrich
 from . import test_content_studio
 from . import test_job_queue
 from . import test_crm_enrich
+from . import test_hermes_acp

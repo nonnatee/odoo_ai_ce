@@ -16,15 +16,16 @@ class AiCeProvider(models.Model):
 
     name = fields.Char(string="Provider Name", required=True)
     service = fields.Selection([
+        ('hermes', 'Hermes Agent Sidecar (ACP & Local Inference)'),
         ('ollama', 'Ollama (Local Inference)'),
         ('openai', 'OpenAI'),
         ('azure', 'Azure OpenAI'),
         ('anthropic', 'Anthropic Claude'),
         ('gemini', 'Google Gemini'),
         ('custom', 'Custom OpenAI-Compatible (LM Studio / vLLM)'),
-    ], string="Service Type", required=True, default='ollama')
+    ], string="Service Type", required=True, default='hermes')
     
-    api_base = fields.Char(string="Base URL", help="e.g. http://localhost:11434/v1 for Ollama")
+    api_base = fields.Char(string="Base URL", help="e.g. http://127.0.0.1:8765/v1 for Hermes or http://localhost:11434/v1 for Ollama")
     api_key = fields.Char(string="API Key", copy=False, help="Stored securely with encryption")
     priority = fields.Integer(string="Priority", default=10, help="Lower numbers take precedence in automatic routing and fallback")
     active = fields.Boolean(string="Active", default=True)
@@ -66,25 +67,33 @@ class AiCeProvider(models.Model):
         base_url = self._get_effective_base_url()
         headers = self._get_headers()
         
-        # Test endpoint
-        test_url = f"{base_url}/models" if self.service in ('openai', 'azure', 'custom', 'ollama') else base_url
-        req = urllib.request.Request(test_url, headers=headers, method="GET")
+        if self.service == 'hermes':
+            # Check Hermes Sidecar Health Endpoint
+            sidecar_host = base_url.replace('/v1', '')
+            req = urllib.request.Request(f"{sidecar_host}/health", headers=headers, method="GET")
+        else:
+            test_url = f"{base_url}/models" if self.service in ('openai', 'azure', 'custom', 'ollama') else base_url
+            req = urllib.request.Request(test_url, headers=headers, method="GET")
+
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 if resp.status not in (200, 201):
                     raise UserError(f"HTTP Status {resp.status}")
         except urllib.error.HTTPError as he:
-            # Some providers may require auth or specific paths, check status
             if he.code in (401, 403):
                 raise UserError(_("Authentication failed: Check your API Key."))
             elif he.code != 200:
                 raise UserError(f"HTTP Error {he.code}: {he.reason}")
+        except Exception as e:
+            raise UserError(str(e))
 
     def _get_effective_base_url(self):
         self.ensure_one()
         if self.api_base:
             return self.api_base.rstrip('/')
-        if self.service == 'ollama':
+        if self.service == 'hermes':
+            return "http://127.0.0.1:8765/v1"
+        elif self.service == 'ollama':
             return "http://localhost:11434/v1"
         elif self.service == 'openai':
             return "https://api.openai.com/v1"
@@ -92,7 +101,7 @@ class AiCeProvider(models.Model):
             return "https://api.anthropic.com/v1"
         elif self.service == 'gemini':
             return "https://generativelanguage.googleapis.com/v1beta"
-        return "http://localhost:11434/v1"
+        return "http://127.0.0.1:8765/v1"
 
     def _get_headers(self):
         self.ensure_one()
@@ -114,7 +123,7 @@ class AiCeProvider(models.Model):
         Supports automatic fallback to configured fallback_provider_ids on failure.
         """
         self.ensure_one()
-        target_model = model_name or (self.default_chat_model_id.name if self.default_chat_model_id else "llama3.2")
+        target_model = model_name or (self.default_chat_model_id.name if self.default_chat_model_id else "hermes-3-llama-3.1")
         
         try:
             return self._execute_chat(messages, target_model, tools, temperature, max_tokens)

@@ -5,10 +5,10 @@
             <div class="o_ai_header d-flex justify-content-between align-items-center">
                 <div>
                     <h1>AI Framework Control Center</h1>
-                    <p>Real-time monitoring of AI providers, autonomous agents, Hermes sidecar, and security governance.</p>
+                    <p>Real-time monitoring of AI providers, Hermes ACP sidecar supervisor, autonomous agents, and zero-trust governance.</p>
                 </div>
                 <div>
-                    <button class="btn btn-outline-info me-2" t-on-click="loadDashboardData">
+                    <button class="btn btn-outline-info me-2" t-on-click="loadDashboardData" t-att-disabled="state.isControlling">
                         <i class="fa fa-refresh me-1"/> Refresh
                     </button>
                     <button class="btn btn-primary" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_agent')">
@@ -47,7 +47,7 @@
                     </span>
                 </div>
 
-                <div class="o_ai_card">
+                <div class="o_ai_card cursor-pointer" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_hermes_sidecar')">
                     <div class="o_ai_card_title">Hermes Agent Sidecar</div>
                     <div class="o_ai_card_value">
                         <t t-out="state.hermesStatus.is_running ? 'Online' : 'Standby'"/>
@@ -58,8 +58,75 @@
                 </div>
             </div>
 
+            <!-- Hermes Supervisor & ACP Control Deck -->
+            <div class="o_ai_section_card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-1">
+                            <i class="fa fa-microchip text-primary me-2"/> Hermes Agent Supervisor &amp; ACP Monitor
+                        </h3>
+                        <p class="text-muted small mb-0">Local autonomous background supervisor with Agent Communication Protocol (ACP) and OpenAI-compatible completions.</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button t-if="!state.hermesStatus.is_running" class="btn btn-sm btn-success" t-on-click="() => this.controlSupervisor('start')" t-att-disabled="state.isControlling">
+                            <i class="fa fa-play me-1"/> Start Daemon
+                        </button>
+                        <button t-if="state.hermesStatus.is_running" class="btn btn-sm btn-warning" t-on-click="() => this.controlSupervisor('restart')" t-att-disabled="state.isControlling">
+                            <i class="fa fa-refresh me-1"/> Restart
+                        </button>
+                        <button t-if="state.hermesStatus.is_running" class="btn btn-sm btn-danger" t-on-click="() => this.controlSupervisor('stop')" t-att-disabled="state.isControlling">
+                            <i class="fa fa-stop me-1"/> Stop
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this.controlSupervisor('ping')" t-att-disabled="state.isControlling">
+                            <i class="fa fa-heartbeat me-1"/> Ping
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_hermes_sidecar')">
+                            <i class="fa fa-cog me-1"/> Configure
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-dark rounded border border-secondary">
+                            <div class="text-muted small text-uppercase">Daemon Status</div>
+                            <div class="h5 mb-0 mt-1 d-flex align-items-center gap-2">
+                                <i t-attf-class="fa fa-circle #{state.hermesStatus.is_running ? 'text-success' : 'text-danger'}"/>
+                                <t t-out="state.hermesStatus.is_running ? 'RUNNING' : 'STOPPED'"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-dark rounded border border-secondary">
+                            <div class="text-muted small text-uppercase">Process PID &amp; Version</div>
+                            <div class="h5 mb-0 mt-1">
+                                PID: <span class="text-info"><t t-out="state.hermesStatus.process_pid || '-'"/></span>
+                                <span class="text-muted small ms-2">(v<t t-out="state.hermesStatus.version || '19.0.2.0'"/>)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-dark rounded border border-secondary">
+                            <div class="text-muted small text-uppercase">Memory / CPU</div>
+                            <div class="h5 mb-0 mt-1">
+                                <t t-out="state.hermesStatus.memory_mb ? state.hermesStatus.memory_mb.toFixed(1) + ' MB' : '-'"/>
+                                <span class="text-muted small ms-2">(<t t-out="state.hermesStatus.cpu_percent ? state.hermesStatus.cpu_percent.toFixed(1) + '%' : '0%'"/> CPU)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-dark rounded border border-secondary">
+                            <div class="text-muted small text-uppercase">Active ACP Sessions</div>
+                            <div class="h5 mb-0 mt-1 text-primary">
+                                <t t-out="state.hermesStatus.active_acp_sessions || 0"/> Concurrent Turns
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Provider Status Table -->
-            <div class="o_ai_section_card">
+            <div class="o_ai_section_card mb-4">
                 <h3>Connected AI Providers</h3>
                 <div class="table-responsive">
                     <table class="table table-dark table-hover mb-0">

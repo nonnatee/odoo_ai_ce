@@ -20,10 +20,18 @@ export class AiCeDashboard extends Component {
             toolCount: 0,
             pendingConsents: 0,
             totalLogs: 0,
-            hermesStatus: { is_running: false, version: "-" },
+            hermesStatus: {
+                is_running: false,
+                version: "-",
+                process_pid: 0,
+                memory_mb: 0,
+                cpu_percent: 0,
+                active_acp_sessions: 0
+            },
             providersList: [],
             recentLogs: [],
             isLoading: true,
+            isControlling: false,
         });
 
         onWillStart(async () => {
@@ -61,6 +69,24 @@ export class AiCeDashboard extends Component {
             console.error("Failed to load AI Dashboard data:", e);
         } finally {
             this.state.isLoading = false;
+        }
+    }
+
+    async controlSupervisor(action) {
+        this.state.isControlling = true;
+        try {
+            const res = await rpc("/ai_ce/hermes/supervisor/control", { action: action });
+            if (res.error) {
+                this.notification.add(res.error, { type: "danger" });
+            } else {
+                this.state.hermesStatus = res;
+                this.notification.add(`Hermes Daemon action '${action}' completed.`, { type: "success" });
+            }
+        } catch (e) {
+            this.notification.add(`Failed to execute '${action}': ${e.message || e}`, { type: "danger" });
+        } finally {
+            this.state.isControlling = false;
+            await this.loadDashboardData();
         }
     }
 

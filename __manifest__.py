@@ -49,6 +49,7 @@ Enterprise-grade AI Framework and Hermes Agent Integration for Odoo 19 CE:
         'views/product_template_views.xml',
         'views/crm_lead_views.xml',
         'views/ai_ce_dashboard_views.xml',
+        'views/ai_ce_hermes_sidecar_views.xml',
         'views/res_config_settings_views.xml',
         'views/ai_ce_menus.xml',
     ],

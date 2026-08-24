@@ -19,20 +19,26 @@ export class AskAiModal extends Component {
             inputPrompt: "",
             isLoading: false,
             sessionId: null,
+            expandedThoughts: {},
             messages: [
                 {
                     role: "assistant",
-                    content: "Hello! I am your Odoo AI Assistant. Ask me to query database records, summarize documents, calculate pricing, or draft responses.",
+                    content: "Hello! I am your Odoo AI Assistant powered by Hermes. Ask me to query database records, summarize documents, calculate pricing, or draft responses.",
+                    thought_chain: [],
                 }
             ],
         });
+    }
+
+    toggleThoughtChain(index) {
+        this.state.expandedThoughts[index] = !this.state.expandedThoughts[index];
     }
 
     async sendMessage() {
         const prompt = this.state.inputPrompt.trim();
         if (!prompt || this.state.isLoading) return;
 
-        this.state.messages.push({ role: "user", content: prompt });
+        this.state.messages.push({ role: "user", content: prompt, thought_chain: [] });
         this.state.inputPrompt = "";
         this.state.isLoading = true;
 
@@ -47,21 +53,43 @@ export class AskAiModal extends Component {
                 this.state.messages.push({
                     role: "assistant",
                     content: `❌ Error: ${response.error}`,
+                    thought_chain: [],
                 });
             } else {
                 this.state.sessionId = response.session_id;
                 this.state.messages.push({
                     role: "assistant",
                     content: response.answer || "No response received.",
+                    thought_chain: response.thought_chain || [],
+                    pending_consent_id: response.pending_consent_id || false,
                 });
             }
         } catch (err) {
             this.state.messages.push({
                 role: "assistant",
                 content: `❌ Connection Error: ${err.message || err}`,
+                thought_chain: [],
             });
         } finally {
             this.state.isLoading = false;
+        }
+    }
+
+    async handleConsent(consentId, decision) {
+        try {
+            const res = await rpc("/ai_ce/consent/decide", {
+                consent_id: consentId,
+                decision: decision,
+            }).catch(() => null);
+
+            this.notification.add(`Approval request #${consentId} ${decision}.`, { type: "info" });
+            this.state.messages.push({
+                role: "assistant",
+                content: `Consent request #${consentId} was marked as ${decision}. You can continue your prompt.`,
+                thought_chain: [],
+            });
+        } catch (e) {
+            this.notification.add(`Failed: ${e.message || e}`, { type: "danger" });
         }
     }
 

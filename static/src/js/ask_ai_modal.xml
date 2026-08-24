@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="odoo_ai_ce.AskAiModal">
-        <Dialog title="'Odoo AI Assistant (Ctrl+K)'" size="'lg'" contentClass="'o_ai_modal_dialog'">
+        <Dialog title="'Odoo AI Assistant &amp; Hermes Agent (Ctrl+K)'" size="'lg'" contentClass="'o_ai_modal_dialog'">
             <div class="o_ai_chat_body">
                 <t t-foreach="state.messages" t-as="msg" t-key="msg_index">
                     <div t-attf-class="o_ai_message o_ai_msg_#{msg.role}">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-uppercase">
-                                <t t-out="msg.role === 'user' ? 'You' : (msg.role === 'tool' ? 'Tool Output' : 'AI Assistant')"/>
+                                <t t-out="msg.role === 'user' ? 'You' : (msg.role === 'tool' ? 'Tool Output' : 'Hermes AI Assistant')"/>
                             </span>
                             <t t-if="msg.role === 'assistant'">
                                 <button class="btn btn-sm btn-link text-muted p-0" title="Copy" t-on-click="() => this.copyMessage(msg.content)">
@@ -15,27 +15,69 @@
                                 </button>
                             </t>
                         </div>
+
+                        <!-- Thought-Chain Accordion -->
+                        <t t-if="msg.thought_chain and msg.thought_chain.length > 0">
+                            <div class="o_ai_thought_accordion mb-2">
+                                <button class="btn btn-sm btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center py-1 px-2"
+                                        t-on-click="() => this.toggleThoughtChain(msg_index)">
+                                    <span class="small text-info">
+                                        <i class="fa fa-brain me-1"/> Hermes Reasoning (<t t-out="msg.thought_chain.length"/> steps)
+                                    </span>
+                                    <i t-attf-class="fa fa-chevron-#{state.expandedThoughts[msg_index] ? 'up' : 'down'} small text-muted"/>
+                                </button>
+                                <div t-if="state.expandedThoughts[msg_index]" class="o_ai_thought_body p-2 bg-dark rounded mt-1 border border-secondary">
+                                    <t t-foreach="msg.thought_chain" t-as="thought" t-key="thought_index">
+                                        <div class="small text-muted mb-1 d-flex align-items-start gap-2">
+                                            <span class="badge bg-secondary"><t t-out="thought.type"/></span>
+                                            <span class="text-light"><t t-out="thought.content || thought.thought || thought.tool"/></span>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Main Content -->
                         <div class="o_ai_msg_content">
                             <t t-out="msg.content"/>
                         </div>
+
+                        <!-- Pending Consent Action Box -->
+                        <t t-if="msg.pending_consent_id">
+                            <div class="p-2 mt-2 bg-dark rounded border border-warning d-flex justify-content-between align-items-center">
+                                <div class="small text-warning">
+                                    <i class="fa fa-exclamation-triangle me-1"/> Approval required for request #<t t-out="msg.pending_consent_id"/>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-success py-0 px-2" t-on-click="() => this.handleConsent(msg.pending_consent_id, 'approved')">
+                                        Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-danger py-0 px-2" t-on-click="() => this.handleConsent(msg.pending_consent_id, 'rejected')">
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
                     </div>
                 </t>
+
                 <t t-if="state.isLoading">
                     <div class="o_ai_message o_ai_msg_assistant">
                         <div class="d-flex align-items-center gap-2 text-muted">
-                            <i class="fa fa-circle-o-notch fa-spin"/>
-                            <span>Thinking and executing tools...</span>
+                            <i class="fa fa-circle-o-notch fa-spin text-primary"/>
+                            <span>Hermes Agent reasoning &amp; querying tools...</span>
                         </div>
                     </div>
                 </t>
             </div>
+
             <div class="o_ai_input_footer">
                 <div class="o_ai_input_box">
                     <textarea 
                         rows="2" 
                         t-model="state.inputPrompt" 
                         t-on-keydown="onKeyDown" 
-                        placeholder="Ask AI anything (e.g., 'Summarize open sales orders for this month')..."/>
+                        placeholder="Ask Hermes AI anything (e.g., 'Analyze our top revenue products this quarter')..."/>
                     <button class="btn btn-primary px-3" t-on-click="sendMessage" t-att-disabled="state.isLoading">
                         <i class="fa fa-paper-plane me-1"/> Send
                     </button>
