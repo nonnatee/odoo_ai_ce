@@ -45,8 +45,8 @@ export class AiCeDashboard extends Component {
             const [providers, models, tools, consents, logs, hermes] = await Promise.all([
                 this.orm.searchRead("ai_ce.provider", [], ["name", "service", "connection_status", "priority", "active"]),
                 this.orm.searchCount("ai_ce.model", []),
-                this.orm.searchCount("ai_ce.tool", [("active", "=", true)]),
-                this.orm.searchCount("ai_ce.consent", [("state", "=", "pending")]),
+                this.orm.searchCount("ai_ce.tool", [["active", "=", true]]),
+                this.orm.searchCount("ai_ce.consent", [["state", "=", "pending"]]),
                 this.orm.searchCount("ai_ce.log", []),
                 rpc("/ai_ce/hermes/status", {}).catch(() => ({ is_running: false })),
             ]);
