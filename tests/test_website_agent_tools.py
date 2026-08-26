@@ -35,10 +35,7 @@ class TestWebsiteAgentTools(TransactionCase):
             'key': 'website.test_landing',
             'arch': '<t t-name="website.test_landing"><div id="wrap" class="oe_structure oe_empty"><section class="s_text_block"><h1>Welcome</h1></section></div></t>',
         })
-        self.ai_partner = self.env['res.partner'].create({
-            'name': 'Hermes AI Agent',
-            'email': 'hermes.test@odoo.internal',
-        })
+        self.ai_partner = self.env['discuss.channel']._get_ai_partner()
 
     def test_website_generate_snippet_hero(self):
         """Test generating responsive hero banner snippet."""

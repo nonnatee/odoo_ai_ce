@@ -148,13 +148,6 @@
             }</field>
         </record>
 
-        <record id="partner_ai_assistant" model="res.partner">
-            <field name="name">Hermes AI Agent</field>
-            <field name="email">hermes.ai@odoo.internal</field>
-            <field name="active">True</field>
-            <field name="comment">Virtual Autonomous AI Assistant powered by Hermes ACP &amp; odoo_ai_ce</field>
-        </record>
-
         <!-- Website & E-Commerce Tools -->
         <record id="tool_website_inspect_page" model="ai_ce.tool">
             <field name="name">website_inspect_page</field>

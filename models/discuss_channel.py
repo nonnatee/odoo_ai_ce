@@ -10,6 +10,67 @@ _logger = logging.getLogger(__name__)
 class DiscussChannel(models.Model):
     _inherit = 'discuss.channel'
 
+    @api.model
+    def _get_ai_partner(self):
+        """
+        Safely retrieve or dynamically create the AI Assistant partner record
+        without breaking on third-party custom required fields or constraints on res.partner.
+        """
+        partner = self.env.ref('odoo_ai_ce.partner_ai_assistant', raise_if_not_found=False)
+        if partner and partner.exists():
+            return partner
+
+        # Search existing partner by name or email
+        partner = self.env['res.partner'].sudo().search([
+            '|', ('name', '=', 'Hermes AI Agent'), ('email', '=', 'hermes.ai@odoo.internal')
+        ], limit=1)
+        if partner:
+            self._bind_partner_xmlid(partner)
+            return partner
+
+        # Attempt to create partner dynamically with default_get to satisfy model defaults
+        try:
+            Partner = self.env['res.partner'].sudo()
+            vals = Partner.default_get(list(Partner._fields.keys()))
+            vals.update({
+                'name': 'Hermes AI Agent',
+                'email': 'hermes.ai@odoo.internal',
+                'active': True,
+                'comment': 'Virtual Autonomous AI Assistant powered by Hermes ACP & odoo_ai_ce',
+            })
+            partner = Partner.create(vals)
+            self._bind_partner_xmlid(partner)
+            return partner
+        except Exception as e:
+            _logger.warning(
+                "Could not create dedicated AI partner due to res.partner constraints (%s); falling back to base.partner_root",
+                e
+            )
+            return self.env.ref('base.partner_root', raise_if_not_found=False) or self.env.user.partner_id
+
+    @api.model
+    def _bind_partner_xmlid(self, partner):
+        data = self.env['ir.model.data'].sudo().search([
+            ('module', '=', 'odoo_ai_ce'),
+            ('name', '=', 'partner_ai_assistant'),
+        ], limit=1)
+        if not data:
+            try:
+                self.env['ir.model.data'].sudo().create({
+                    'module': 'odoo_ai_ce',
+                    'name': 'partner_ai_assistant',
+                    'model': 'res.partner',
+                    'res_id': partner.id,
+                    'noupdate': True,
+                })
+            except Exception:
+                pass
+        elif data.res_id != partner.id:
+            try:
+                data.write({'res_id': partner.id})
+            except Exception:
+                pass
+
     def _message_post_after_hook(self, message, msg_vals):
         """
         Intercept Discuss messages to trigger the AI Agent if the AI Bot partner is mentioned
@@ -17,7 +78,7 @@ class DiscussChannel(models.Model):
         """
         super()._message_post_after_hook(message, msg_vals)
 
-        ai_partner = self.env.ref('odoo_ai_ce.partner_ai_assistant', raise_if_not_found=False)
+        ai_partner = self._get_ai_partner()
         if not ai_partner:
             return
 
