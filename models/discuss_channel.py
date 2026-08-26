@@ -5,6 +5,15 @@ import re
 from odoo import models, fields, api, tools, _
 from odoo.tools import html2plaintext
 
+try:
+    from markupsafe import Markup, escape
+except ImportError:
+    try:
+        from odoo.tools import Markup, escape
+    except ImportError:
+        def Markup(s): return s
+        def escape(s): return s
+
 _logger = logging.getLogger(__name__)
 
 class DiscussChannel(models.Model):
@@ -242,13 +251,19 @@ class DiscussChannel(models.Model):
 
         if channel and is_new:
             try:
-                channel.sudo().message_post(
-                    body=_(
-                        "<p>👋 <strong>Hello %s!</strong></p>"
-                        "<p>I am <strong>Hermes AI Agent</strong>, your sovereign autonomous assistant embedded in Odoo ERP.</p>"
-                        "<p>You can ask me questions about your database (Sales, CRM, Invoices, Products), "
-                        "request document summaries, or give me operational tasks. How can I help you today?</p>"
-                    ) % user_partner.name,
+                welcome_html = Markup(
+                    "<p>👋 <strong>Hello %s!</strong></p>"
+                    "<p>I am <strong>Hermes AI Agent</strong>, your sovereign autonomous assistant embedded in Odoo ERP.</p>"
+                    "<p>You can ask me questions about your database (Sales, CRM, Invoices, Products), "
+                    "request document summaries, or give me operational tasks. How can I help you today?</p>"
+                ) % escape(user_partner.name or "there")
+
+                channel.sudo().with_context(
+                    mail_create_nosubscribe=True,
+                    mail_post_autofollow=False,
+                    mail_notify_author=False
+                ).message_post(
+                    body=welcome_html,
                     author_id=ai_partner.id,
                     message_type='comment',
                     subtype_xmlid='mail.mt_comment',
@@ -332,7 +347,7 @@ class DiscussChannel(models.Model):
         cmd = lower.split()[0]
 
         if cmd in ('/help', '/commands'):
-            return f"""
+            return Markup("""
 <div class='o_ai_command_help'>
     <h6><i class='fa fa-terminal text-primary'></i> <strong>Hermes AI Agent Commands</strong></h6>
     <ul class='list-unstyled small mb-0'>
@@ -344,17 +359,17 @@ class DiscussChannel(models.Model):
         <li><code>/help</code> - Show this command reference.</li>
     </ul>
     <p class='text-muted small mt-2 mb-0'>💡 <em>Or simply type any natural language request (e.g. "Search top 5 opportunities in CRM").</em></p>
-</div>"""
+</div>""")
 
         elif cmd in ('/status', '/ping'):
             provider = self.env['ai_ce.provider'].search([('active', '=', True)], order='priority asc', limit=1)
             models_cnt = self.env['ai_ce.model'].search_count([])
             tools_cnt = self.env['ai_ce.tool'].search_count([('active', '=', True)])
             consents_cnt = self.env['ai_ce.consent'].search_count([('state', '=', 'pending')])
-            provider_name = provider.name if provider else "None"
-            prov_type = provider.service.upper() if provider else "-"
+            provider_name = escape(provider.name) if provider else "None"
+            prov_type = escape(provider.service.upper()) if provider else "-"
 
-            return f"""
+            return Markup(f"""
 <div class='o_ai_status_card p-2'>
     <h6><i class='fa fa-heartbeat text-success'></i> <strong>Hermes AI System Status</strong></h6>
     <table class='table table-sm table-borderless small mb-0'>
@@ -364,58 +379,126 @@ class DiscussChannel(models.Model):
         <tr><td><strong>Pending Approvals:</strong></td><td><span class='badge bg-{"warning" if consents_cnt > 0 else "success"}'>{consents_cnt} pending</span></td></tr>
         <tr><td><strong>Channel Session:</strong></td><td>Session #{session.id} ({session.message_count} messages)</td></tr>
     </table>
-</div>"""
+</div>""")
 
         elif cmd == '/tools':
             tools = self.env['ai_ce.tool'].search([('active', '=', True)], limit=15)
             tool_rows = "".join([
-                f"<tr><td><code>{t.name}</code></td><td>{'<span class=\"badge bg-warning text-dark\">HITL Gated</span>' if t.requires_user_consent else '<span class=\"badge bg-success\">Auto</span>'}</td><td><small>{t.description or '-'}</small></td></tr>"
+                f"<tr><td><code>{escape(t.name)}</code></td><td>{'<span class=\"badge bg-warning text-dark\">HITL Gated</span>' if t.requires_user_consent else '<span class=\"badge bg-success\">Auto</span>'}</td><td><small>{escape(t.description or '-')}</small></td></tr>"
                 for t in tools
             ])
-            return f"""
+            return Markup(f"""
 <div class='o_ai_tools_list'>
     <h6><i class='fa fa-wrench text-primary'></i> <strong>Active Callable Tools ({len(tools)})</strong></h6>
     <table class='table table-sm table-hover small'>
         <thead><tr><th>Tool Name</th><th>Safety</th><th>Description</th></tr></thead>
         <tbody>{tool_rows}</tbody>
     </table>
-</div>"""
+</div>""")
 
         elif cmd == '/models':
             models_rec = self.env['ai_ce.model'].search([], limit=10)
             rows = "".join([
-                f"<tr><td><strong>{m.name}</strong></td><td><code>{m.technical_name}</code></td><td>{m.provider_id.name}</td></tr>"
+                f"<tr><td><strong>{escape(m.name)}</strong></td><td><code>{escape(m.technical_name)}</code></td><td>{escape(m.provider_id.name or '-')}</td></tr>"
                 for m in models_rec
             ])
-            return f"""
+            return Markup(f"""
 <div class='o_ai_models_list'>
     <h6><i class='fa fa-cubes text-primary'></i> <strong>Available LLM Models</strong></h6>
     <table class='table table-sm table-hover small'>
         <thead><tr><th>Model Name</th><th>Technical ID</th><th>Provider</th></tr></thead>
         <tbody>{rows}</tbody>
     </table>
-</div>"""
+</div>""")
 
         elif cmd == '/consent':
             consents = self.env['ai_ce.consent'].search([('state', '=', 'pending')], limit=5)
             if not consents:
-                return "<p class='text-success mb-0'><i class='fa fa-check-circle'></i> All Clear: No pending consent approvals in the queue.</p>"
+                return Markup("<p class='text-success mb-0'><i class='fa fa-check-circle'></i> All Clear: No pending consent approvals in the queue.</p>")
             rows = "".join([
-                f"<li><strong>#{c.id}</strong> - Tool: <code>{c.tool_id.name}</code> (Requested by: {c.user_id.name})</li>"
+                f"<li><strong>#{c.id}</strong> - Tool: <code>{escape(c.tool_id.name)}</code> (Requested by: {escape(c.user_id.name)})</li>"
                 for c in consents
             ])
-            return f"""
+            return Markup(f"""
 <div class='alert alert-warning mb-0'>
     <strong><i class='fa fa-shield'></i> Pending Approvals ({len(consents)}):</strong>
     <ul class='small mb-0 mt-1'>{rows}</ul>
     <small class='d-block mt-1'>Go to <strong>AI Hub > Agentic Operations > Pending Approvals</strong> to confirm or reject.</small>
-</div>"""
+</div>""")
 
         elif cmd == '/clear':
             session.clear_history()
-            return f"<p class='text-info mb-0'><i class='fa fa-trash'></i> Conversation session #{session.id} history has been cleared.</p>"
+            return Markup(f"<p class='text-info mb-0'><i class='fa fa-trash'></i> Conversation session #{session.id} history has been cleared.</p>")
 
         return None
+
+    def _format_ai_response_html(self, text, pending_consent_id=None):
+        """
+        Format AI agent response text (converting markdown, code blocks, bullet points)
+        into rich sanitized HTML wrapped in Markup for crisp rendering in Odoo Discuss.
+        """
+        if not text:
+            text = _("I have processed your request.")
+
+        # 1. Protect code blocks
+        code_blocks = []
+        def _sub_code_block(m):
+            code_blocks.append(m.group(2).rstrip())
+            return f"@@CODEBLOCK{len(code_blocks)-1}@@"
+        formatted = re.sub(r'```([a-zA-Z0-9_\-\+]*)\r?\n([\s\S]*?)```', _sub_code_block, text)
+
+        # 2. Protect inline code
+        inline_codes = []
+        def _sub_inline(m):
+            inline_codes.append(m.group(1))
+            return f"@@INLINECODE{len(inline_codes)-1}@@"
+        formatted = re.sub(r'`([^`\n]+)`', _sub_inline, formatted)
+
+        # 3. Escape HTML characters in user text
+        formatted = str(escape(formatted))
+
+        # 4. Bold & Italic
+        formatted = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', formatted)
+        formatted = re.sub(r'(^|[^\*])\*([^*\n]+)\*([^\*]|$)', r'\1<em>\2</em>\3', formatted)
+
+        # 5. Bullet Lists
+        formatted = re.sub(r'^(\s*)[-\*]\s+(.+)$', r'<li class="mb-1">\2</li>', formatted, flags=re.M)
+        formatted = re.sub(r'((?:<li[^>]*>.*?</li>\s*)+)', r'<ul class="ps-3 my-2">\1</ul>', formatted, flags=re.S)
+
+        # 6. Paragraphs and Line Breaks
+        blocks = [b.strip() for b in re.split(r'\n\s*\n', formatted) if b.strip()]
+        html_blocks = []
+        for b in blocks:
+            if b.startswith('<ul') or b.startswith('@@CODEBLOCK'):
+                html_blocks.append(b)
+            else:
+                html_blocks.append(f"<p class='mb-2'>{b.replace(chr(10), '<br/>')}</p>")
+        formatted = "".join(html_blocks)
+
+        # 7. Restore Inline Code
+        def _restore_inline(m):
+            idx = int(m.group(1))
+            code = str(escape(inline_codes[idx])) if idx < len(inline_codes) else ""
+            return f"<code class='px-1 py-0.5 rounded bg-light text-primary font-monospace small'>{code}</code>"
+        formatted = re.sub(r'@@INLINECODE(\d+)@@', _restore_inline, formatted)
+
+        # 8. Restore Code Blocks
+        def _restore_block(m):
+            idx = int(m.group(1))
+            code = str(escape(code_blocks[idx])) if idx < len(code_blocks) else ""
+            return f"<pre class='p-2 my-2 bg-dark text-light rounded font-monospace small overflow-auto'><code>{code}</code></pre>"
+        formatted = re.sub(r'@@CODEBLOCK(\d+)@@', _restore_block, formatted)
+
+        # 9. Append HITL Consent Banner if pending
+        if pending_consent_id:
+            formatted += f"""
+<div class='alert alert-warning mt-2 p-2 rounded'>
+    <strong><i class='fa fa-shield'></i> Approval Required:</strong> 
+    This action requires administrator confirmation. 
+    Pending Consent Request <strong>#{pending_consent_id}</strong> has been queued.
+</div>"""
+
+        return Markup(f"<div class='o_ai_discuss_response'>{formatted}</div>")
 
     def _dispatch_ai_agent_turn(self, message, ai_partner):
         """
@@ -465,7 +548,7 @@ class DiscussChannel(models.Model):
                     mail_post_autofollow=False,
                     mail_notify_author=False
                 ).message_post(
-                    body=_("<p class='text-danger'>⚠️ No AI Provider is configured or active. Please configure an AI Provider in Settings.</p>"),
+                    body=Markup("<p class='text-danger'>⚠️ No AI Provider is configured or active. Please configure an AI Provider in Settings.</p>"),
                     author_id=ai_partner.id,
                     message_type='comment',
                     subtype_xmlid='mail.mt_comment',
@@ -489,15 +572,7 @@ class DiscussChannel(models.Model):
             answer = result.get('answer') or _("I have processed your request.")
             pending_consent_id = result.get('pending_consent_id')
 
-            # Format answer with styling
-            body_html = f"<div class='o_ai_discuss_response'>{answer}</div>"
-            if pending_consent_id:
-                body_html += f"""
-<div class='alert alert-warning mt-2 p-2'>
-    <strong><i class='fa fa-shield'></i> Approval Required:</strong> 
-    This action requires administrator confirmation. 
-    Pending Consent Request <strong>#{pending_consent_id}</strong> has been queued.
-</div>"""
+            body_html = self._format_ai_response_html(answer, pending_consent_id)
 
             self.with_context(
                 mail_create_nosubscribe=True,
@@ -517,7 +592,7 @@ class DiscussChannel(models.Model):
                 mail_post_autofollow=False,
                 mail_notify_author=False
             ).message_post(
-                body=f"<p class='text-danger'>❌ Error executing AI Agent turn: {str(e)}</p>",
+                body=Markup(f"<p class='text-danger'>❌ Error executing AI Agent turn: {escape(str(e))}</p>"),
                 author_id=ai_partner.id,
                 message_type='comment',
                 subtype_xmlid='mail.mt_comment',

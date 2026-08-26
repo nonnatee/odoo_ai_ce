@@ -7,6 +7,7 @@ import { rpc } from "@web/core/network/rpc";
 
 function slugify(text) {
     return (text || "")
+        .replace(/@@(INLINECODE|CODEBLOCK)\d+@@/g, "")
         .toLowerCase()
         .replace(/<[^>]*>/g, "")
         .replace(/[^a-z0-9]+/g, "-")
@@ -16,20 +17,20 @@ function slugify(text) {
 function parseMarkdown(rawMd) {
     if (!rawMd) return "";
 
-    // 1. Extract and protect code blocks
+    // 1. Extract and protect code blocks (Use underscore-free token to avoid markdown italic collisions)
     const codeBlocks = [];
     let text = rawMd.replace(/```([a-zA-Z0-9_\-\+]*)\r?\n([\s\S]*?)```/g, (match, lang, code) => {
         const index = codeBlocks.length;
         codeBlocks.push({ lang: lang.trim() || "text", code: code.trimEnd() });
-        return `@@CODE_BLOCK_${index}@@`;
+        return `@@CODEBLOCK${index}@@`;
     });
 
-    // 2. Extract and protect inline code
+    // 2. Extract and protect inline code (Use underscore-free token to avoid markdown italic collisions)
     const inlineCodes = [];
     text = text.replace(/`([^`\n]+)`/g, (match, code) => {
         const index = inlineCodes.length;
         inlineCodes.push(code);
-        return `@@INLINE_CODE_${index}@@`;
+        return `@@INLINECODE${index}@@`;
     });
 
     // 3. Escape HTML characters in remaining text
@@ -135,11 +136,11 @@ function parseMarkdown(rawMd) {
         return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-primary">${label} <i class="fa fa-external-link small opacity-75"></i></a>`;
     });
 
-    // 10. Bold, Italic, Strikethrough
+    // 10. Bold, Italic, Strikethrough (Space/Boundary aware to prevent mangling identifiers with underscores)
     text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    text = text.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+    text = text.replace(/(^|\s)__([^_]+)__(\s|$)/g, "$1<strong>$2</strong>$3");
     text = text.replace(/(^|[^\*])\*([^*\n]+)\*([^\*]|$)/g, "$1<em>$2</em>$3");
-    text = text.replace(/(^|[^_])_([^_\n]+)_([^_]|$)/g, "$1<em>$2</em>$3");
+    text = text.replace(/(^|\s)_([^_]+)_(\s|$)/g, "$1<em>$2</em>$3");
     text = text.replace(/~~([^~]+)~~/g, "<del>$1</del>");
 
     // 11. Lists (Ordered and Unordered)
@@ -163,7 +164,7 @@ function parseMarkdown(rawMd) {
         if (/^<(h[1-6]|div|table|ul|ol|blockquote|hr|pre)/i.test(trimmed)) {
             return trimmed;
         }
-        if (trimmed.startsWith("@@CODE_BLOCK_")) {
+        if (trimmed.startsWith("@@CODEBLOCK")) {
             return trimmed;
         }
         return `<p class="my-3 text-secondary lh-lg">${trimmed.replace(/\n/g, "<br/>")}</p>`;
@@ -171,14 +172,14 @@ function parseMarkdown(rawMd) {
     text = formattedBlocks.join("\n\n");
 
     // 13. Restore Inline Code
-    text = text.replace(/@@INLINE_CODE_(\d+)@@/g, (m, idx) => {
+    text = text.replace(/@@INLINECODE(\d+)@@/g, (m, idx) => {
         const rawCode = inlineCodes[parseInt(idx, 10)] || "";
         const escaped = rawCode.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         return `<code class="o_ai_inline_code px-1 py-0.5 rounded bg-light text-primary font-monospace small">${escaped}</code>`;
     });
 
     // 14. Restore Code Blocks with Copy Buttons
-    text = text.replace(/@@CODE_BLOCK_(\d+)@@/g, (m, idx) => {
+    text = text.replace(/@@CODEBLOCK(\d+)@@/g, (m, idx) => {
         const item = codeBlocks[parseInt(idx, 10)];
         if (!item) return "";
         const lang = item.lang || "text";
