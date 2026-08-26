@@ -9,11 +9,17 @@ class AiCeSession(models.Model):
     name = fields.Char(string="Session Title", default="New Conversation")
     agent_id = fields.Many2one("ai_ce.agent", string="Assigned Agent")
     user_id = fields.Many2one("res.users", string="User", default=lambda self: self.env.user)
+    channel_id = fields.Many2one("discuss.channel", string="Discuss Channel", index=True, ondelete="cascade")
     
     message_ids = fields.One2many("ai_ce.session.message", "session_id", string="Messages")
     message_count = fields.Integer(string="Message Count", compute="_compute_message_count")
     
     active = fields.Boolean(string="Active", default=True)
+
+    def clear_history(self):
+        """Clear all messages in this conversation session."""
+        self.ensure_one()
+        self.message_ids.unlink()
 
     @api.depends('message_ids')
     def _compute_message_count(self):

@@ -52,6 +52,19 @@ In public or private channels (e.g. `#general`, `#sales-leads`, `#support`), inv
 
 The AI will parse the mention, retrieve the relevant CRM context using active record tools, and reply in the channel.
 
+### 3. Fast-Path Slash Commands (0ms / 0-Tokens)
+
+Hermes AI includes a fast-path command dispatcher inspired by OdooBot that executes instant operational queries directly in Odoo ORM without consuming LLM API tokens or network latency:
+
+| Command | Response Time | Description |
+|---|---|---|
+| `/status` or `/ping` | `<1 ms` | View active LLM provider, active model, catalog count, and pending approvals. |
+| `/tools` | `<1 ms` | Display all registered callable tools, safety flags, and descriptions. |
+| `/models` | `<1 ms` | List all available AI models cataloged in the system. |
+| `/consent` | `<1 ms` | Check all pending Human-in-the-Loop approval requests in the queue. |
+| `/clear` | `<1 ms` | Reset / wipe active conversation session memory for the channel. |
+| `/help` | `<1 ms` | Show full list of available slash commands and usage guide. |
+
 ---
 
 ## 🛡️ Human-in-the-Loop (HITL) Approval Badges
