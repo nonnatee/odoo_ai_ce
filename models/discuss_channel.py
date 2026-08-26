@@ -117,44 +117,64 @@ class DiscussChannel(models.Model):
             return False
 
         # Search for existing 1-on-1 chat
-        channel = self.sudo().search([
-            ('channel_type', '=', 'chat'),
-            ('channel_partner_ids', 'in', [ai_partner.id]),
-            ('channel_partner_ids', 'in', [user_partner.id]),
-        ], limit=1)
+        channel = False
+        member_model = self.env.get('discuss.channel.member')
+        if member_model is not None:
+            user_channels = member_model.sudo().search([
+                ('partner_id', '=', user_partner.id)
+            ]).mapped('channel_id').filtered(lambda c: c.channel_type == 'chat')
+
+            for c in user_channels:
+                members = c.mapped('channel_member_ids.partner_id').ids or c.mapped('channel_partner_ids').ids
+                if ai_partner.id in members:
+                    channel = c
+                    break
 
         if not channel:
-            # Fallback search by channel members
-            channel = self.sudo().search([
-                ('channel_type', '=', 'chat'),
-                ('channel_member_ids.partner_id', 'in', [ai_partner.id]),
-                ('channel_member_ids.partner_id', 'in', [user_partner.id]),
-            ], limit=1)
+            channels = self.sudo().search([('channel_type', '=', 'chat')])
+            for c in channels:
+                members = c.mapped('channel_member_ids.partner_id').ids or c.mapped('channel_partner_ids').ids
+                if user_partner.id in members and ai_partner.id in members:
+                    channel = c
+                    break
 
         is_new = False
         if not channel:
             is_new = True
+            # Try channel_get first (standard Odoo 17/18/19 way)
             try:
                 if hasattr(self, 'channel_get'):
-                    res = self.sudo().channel_get(partners_to=[ai_partner.id, user_partner.id])
+                    res = self.with_user(self.env.user).channel_get(partners_to=[ai_partner.id])
                     channel = self.sudo().browse(res.get('id')) if isinstance(res, dict) else res
-                else:
+            except Exception as e:
+                _logger.warning("channel_get failed (%s); falling back to direct creation", e)
+
+            # Fallback to direct creation with channel_member_ids
+            if not channel:
+                try:
                     channel = self.sudo().create({
                         'name': f"{user_partner.name}, {ai_partner.name}",
                         'channel_type': 'chat',
-                        'channel_partner_ids': [(6, 0, [user_partner.id, ai_partner.id])],
+                        'channel_member_ids': [
+                            (0, 0, {'partner_id': user_partner.id}),
+                            (0, 0, {'partner_id': ai_partner.id}),
+                        ],
                     })
-            except Exception as e:
-                _logger.warning("Error creating direct AI chat channel: %s", e)
-                channel = self.sudo().create({
-                    'name': f"{user_partner.name}, {ai_partner.name}",
-                    'channel_type': 'chat',
-                    'channel_partner_ids': [(6, 0, [user_partner.id, ai_partner.id])],
-                })
+                except Exception as e:
+                    _logger.warning("Failed creating with channel_member_ids (%s); trying manual member insertion", e)
+                    channel = self.sudo().create({
+                        'name': f"{user_partner.name}, {ai_partner.name}",
+                        'channel_type': 'chat',
+                    })
+                    if member_model is not None and channel:
+                        member_model.sudo().create([
+                            {'channel_id': channel.id, 'partner_id': user_partner.id},
+                            {'channel_id': channel.id, 'partner_id': ai_partner.id},
+                        ])
 
         if channel and is_new:
             try:
-                channel.message_post(
+                channel.sudo().message_post(
                     body=_(
                         "<p>👋 <strong>Hello %s!</strong></p>"
                         "<p>I am <strong>Hermes AI Agent</strong>, your sovereign autonomous assistant embedded in Odoo ERP.</p>"
