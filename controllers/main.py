@@ -66,3 +66,40 @@ class AiCeController(http.Controller):
         )
         msg.write({'ai_role': 'assistant'})
         return {"success": True, "message_id": msg.id}
+
+    @http.route('/ai_ce/consent/decide', type='json', auth='user', methods=['POST'])
+    def decide_consent(self, consent_id, decision='approved'):
+        """
+        Handle Human-in-the-Loop decision (approve or reject) for a pending ai_ce.consent request.
+        """
+        env = request.env
+        consent = env['ai_ce.consent'].browse(int(consent_id))
+        if not consent.exists():
+            return {"error": f"Consent request #{consent_id} not found."}
+
+        if consent.state != 'pending':
+            return {"error": f"Consent request #{consent_id} is already in state '{consent.state}'."}
+
+        try:
+            if decision in ('approved', 'granted'):
+                consent.action_approve_and_execute()
+                return {
+                    "success": True,
+                    "state": consent.state,
+                    "decision": "approved",
+                    "execution_result": consent.execution_result,
+                    "message": f"Consent #{consent_id} approved and executed successfully."
+                }
+            elif decision in ('rejected', 'denied'):
+                consent.action_reject()
+                return {
+                    "success": True,
+                    "state": consent.state,
+                    "decision": "rejected",
+                    "message": f"Consent #{consent_id} was rejected."
+                }
+            else:
+                return {"error": f"Invalid decision: '{decision}'. Must be 'approved' or 'rejected'."}
+        except Exception as e:
+            _logger.exception("Error processing consent decision for #%s", consent_id)
+            return {"error": str(e)}

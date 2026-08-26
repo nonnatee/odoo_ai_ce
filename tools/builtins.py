@@ -21,6 +21,21 @@ def execute_builtin_tool(env, tool_name, arguments, user_id=None):
         return _builtin_unlink_record(target_env, arguments)
     elif tool_name == "analyze_records":
         return _builtin_analyze_records(target_env, arguments)
+    elif tool_name == "website_inspect_page":
+        from .website_tools import execute_website_inspect_page
+        return execute_website_inspect_page(target_env, arguments)
+    elif tool_name == "website_update_seo":
+        from .website_tools import execute_website_update_seo
+        return execute_website_update_seo(target_env, arguments)
+    elif tool_name == "website_generate_snippet":
+        from .website_tools import execute_website_generate_snippet
+        return execute_website_generate_snippet(target_env, arguments)
+    elif tool_name == "website_mutate_page_arch":
+        from .website_tools import execute_website_mutate_page_arch
+        return execute_website_mutate_page_arch(target_env, arguments)
+    elif tool_name == "ecommerce_enrich_product_page":
+        from .website_tools import execute_ecommerce_enrich_product_page
+        return execute_ecommerce_enrich_product_page(target_env, arguments)
     else:
         raise UserError(f"Unknown built-in tool: {tool_name}")
 

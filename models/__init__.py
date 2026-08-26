@@ -13,4 +13,5 @@ from . import ai_ce_job
 from . import product_template
 from . import crm_lead
 from . import mail_message
+from . import discuss_channel
 from . import res_config_settings

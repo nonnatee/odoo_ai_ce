@@ -148,19 +148,116 @@
             }</field>
         </record>
 
+        <record id="partner_ai_assistant" model="res.partner">
+            <field name="name">Hermes AI Agent</field>
+            <field name="email">hermes.ai@odoo.internal</field>
+            <field name="active">True</field>
+            <field name="comment">Virtual Autonomous AI Assistant powered by Hermes ACP &amp; odoo_ai_ce</field>
+        </record>
+
+        <!-- Website & E-Commerce Tools -->
+        <record id="tool_website_inspect_page" model="ai_ce.tool">
+            <field name="name">website_inspect_page</field>
+            <field name="description">Inspect a website page's QWeb architecture, SEO metadata (title, description, keywords), and publication status.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "Website URL path (e.g. '/', '/contactus', '/about-us')"},
+                    "page_id": {"type": "integer", "description": "Website page record ID"}
+                }
+            }</field>
+        </record>
+
+        <record id="tool_website_update_seo" model="ai_ce.tool">
+            <field name="name">website_update_seo</field>
+            <field name="description">Update SEO metadata (meta title, meta description, and keywords) for an Odoo website page.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "page_id": {"type": "integer", "description": "Target website page ID"},
+                    "url": {"type": "string", "description": "Website page URL (e.g. '/services')"},
+                    "meta_title": {"type": "string", "description": "Optimized search engine title"},
+                    "meta_description": {"type": "string", "description": "Compelling search engine description snippet (150-160 chars)"},
+                    "keywords": {"type": "string", "description": "Comma-separated target SEO keywords"}
+                }
+            }</field>
+        </record>
+
+        <record id="tool_website_generate_snippet" model="ai_ce.tool">
+            <field name="name">website_generate_snippet</field>
+            <field name="description">Generate responsive Bootstrap 5 / QWeb HTML snippet blocks (hero, features, faqs, cta, testimonials) for Odoo website.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "snippet_type": {"type": "string", "enum": ["hero", "features", "faqs", "cta"], "description": "Type of snippet block to generate"},
+                    "title": {"type": "string", "description": "Main heading for the section"},
+                    "subtitle": {"type": "string", "description": "Subtitle or intro paragraph"},
+                    "items": {"type": "array", "description": "List of cards/items with title, description, and optional icon or question/answer"},
+                    "cta_text": {"type": "string", "description": "Call-to-action button text"},
+                    "cta_url": {"type": "string", "description": "Call-to-action target link URL"}
+                },
+                "required": ["snippet_type", "title"]
+            }</field>
+        </record>
+
+        <record id="tool_website_mutate_page_arch" model="ai_ce.tool">
+            <field name="name">website_mutate_page_arch</field>
+            <field name="description">Safely inject or append a QWeb snippet block into a website page's live view arch. Protected by Human-in-the-Loop consent gate.</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">True</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "page_id": {"type": "integer", "description": "Target website page ID"},
+                    "url": {"type": "string", "description": "Target website URL path"},
+                    "snippet_html": {"type": "string", "description": "Complete valid QWeb / HTML snippet to inject"},
+                    "action": {"type": "string", "enum": ["append", "prepend"], "description": "Insertion mode (default: append)"}
+                },
+                "required": ["snippet_html"]
+            }</field>
+        </record>
+
+        <record id="tool_ecommerce_enrich_product_page" model="ai_ce.tool">
+            <field name="name">ecommerce_enrich_product_page</field>
+            <field name="description">Enrich a product template with a high-converting e-commerce showcase (key highlights, technical spec table, and accordion FAQs).</field>
+            <field name="implementation">builtin</field>
+            <field name="requires_user_consent">False</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "product_tmpl_id": {"type": "integer", "description": "Target product.template record ID"},
+                    "selling_points": {"type": "array", "items": {"type": "string"}, "description": "Key value propositions & highlights"},
+                    "faq_items": {"type": "array", "description": "List of FAQ objects with question and answer strings"},
+                    "specs": {"type": "object", "description": "Technical specifications key-value dictionary"}
+                },
+                "required": ["product_tmpl_id"]
+            }</field>
+        </record>
+
         <!-- Default Autonomous Agent -->
         <record id="agent_default_assistant" model="ai_ce.agent">
             <field name="name">Odoo AI Assistant</field>
-            <field name="description">General-purpose intelligent ERP assistant with database query &amp; operations tools</field>
+            <field name="description">General-purpose intelligent ERP assistant with database query, operations, &amp; website tools</field>
             <field name="provider_id" ref="provider_hermes_local"/>
             <field name="model_id" ref="model_hermes_3"/>
-            <field name="system_prompt">You are an intelligent, helpful AI Assistant embedded in Odoo ERP. You have access to database tools to assist users with business operations, document summarization, and data queries. Always be concise, factual, and helpful.</field>
+            <field name="system_prompt">You are an intelligent, helpful AI Assistant embedded in Odoo ERP. You have access to database and website tools to assist users with business operations, website enhancement, document summarization, and data queries. Always be concise, factual, and helpful.</field>
             <field name="tool_ids" eval="[(6, 0, [
                 ref('tool_search_records'),
                 ref('tool_create_record'),
                 ref('tool_update_record'),
                 ref('tool_delete_record'),
-                ref('tool_analyze_records')
+                ref('tool_analyze_records'),
+                ref('tool_website_inspect_page'),
+                ref('tool_website_update_seo'),
+                ref('tool_website_generate_snippet'),
+                ref('tool_website_mutate_page_arch'),
+                ref('tool_ecommerce_enrich_product_page')
             ])]"/>
             <field name="temperature">0.2</field>
             <field name="max_iterations">8</field>
@@ -193,6 +290,13 @@
             <field name="model_name">project.task</field>
             <field name="description">Project management tasks, issues, and deadlines</field>
             <field name="sequence">40</field>
+        </record>
+
+        <record id="resource_website_page" model="ai_ce.resource">
+            <field name="name">Website Pages</field>
+            <field name="model_name">website.page</field>
+            <field name="description">Website frontend content pages and metadata</field>
+            <field name="sequence">50</field>
         </record>
     </data>
 </odoo>

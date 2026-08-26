@@ -6,9 +6,25 @@ import { AskAiModal } from "./ask_ai_modal";
 export const askAiService = {
     dependencies: ["dialog", "orm"],
     start(env, { dialog, orm }) {
+        function extractActiveContext(explicitContext = {}) {
+            const context = {
+                url: window.location.pathname,
+                href: window.location.href,
+                page_title: document.title,
+                ...explicitContext,
+            };
+
+            const pageMeta = document.querySelector('meta[name="page_id"]');
+            if (pageMeta && !context.page_id) {
+                context.page_id = parseInt(pageMeta.content);
+            }
+
+            return context;
+        }
+
         function openAskAi(recordContext = {}) {
             dialog.add(AskAiModal, {
-                recordContext: recordContext,
+                recordContext: extractActiveContext(recordContext),
             });
         }
 
