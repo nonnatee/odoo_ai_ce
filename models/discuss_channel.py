@@ -10,6 +10,14 @@ _logger = logging.getLogger(__name__)
 class DiscussChannel(models.Model):
     _inherit = 'discuss.channel'
 
+    def _register_hook(self):
+        """Pre-initialize AI partner on startup so it is immediately discoverable in Discuss."""
+        super()._register_hook()
+        try:
+            self._get_ai_partner()
+        except Exception as e:
+            _logger.debug("Could not pre-initialize AI partner in _register_hook: %s", e)
+
     @api.model
     def _get_ai_partner(self):
         """
@@ -18,6 +26,8 @@ class DiscussChannel(models.Model):
         """
         partner = self.env.ref('odoo_ai_ce.partner_ai_assistant', raise_if_not_found=False)
         if partner and partner.exists():
+            if not partner.active:
+                partner.sudo().write({'active': True})
             return partner
 
         # Search existing partner by name or email
@@ -25,22 +35,46 @@ class DiscussChannel(models.Model):
             '|', ('name', '=', 'Hermes AI Agent'), ('email', '=', 'hermes.ai@odoo.internal')
         ], limit=1)
         if partner:
+            if not partner.active:
+                partner.sudo().write({'active': True})
             self._bind_partner_xmlid(partner)
             return partner
 
-        # Attempt to create partner dynamically with default_get to satisfy model defaults
+        # Attempt to create partner dynamically with default_get + required field fallbacks
+        Partner = self.env['res.partner'].sudo()
         try:
-            Partner = self.env['res.partner'].sudo()
             vals = Partner.default_get(list(Partner._fields.keys()))
             vals.update({
                 'name': 'Hermes AI Agent',
                 'email': 'hermes.ai@odoo.internal',
                 'active': True,
+                'is_company': False,
+                'type': 'contact',
                 'comment': 'Virtual Autonomous AI Assistant powered by Hermes ACP & odoo_ai_ce',
             })
-            partner = Partner.create(vals)
-            self._bind_partner_xmlid(partner)
-            return partner
+            if 'im_status' in Partner._fields:
+                vals['im_status'] = 'bot'
+
+            # Auto-populate any missing required fields to prevent DB NOT NULL constraints
+            for fname, field in Partner._fields.items():
+                if fname not in vals and getattr(field, 'required', False):
+                    if field.type == 'boolean':
+                        vals[fname] = False
+                    elif field.type in ('integer', 'float', 'monetary'):
+                        vals[fname] = 0
+                    elif field.type == 'selection':
+                        sel = field.selection
+                        if callable(sel):
+                            sel = sel(Partner)
+                        if sel:
+                            vals[fname] = sel[0][0]
+                    elif field.type in ('char', 'text', 'html'):
+                        vals[fname] = '-'
+
+            with self.env.cr.savepoint():
+                partner = Partner.create(vals)
+                self._bind_partner_xmlid(partner)
+                return partner
         except Exception as e:
             _logger.warning(
                 "Could not create dedicated AI partner due to res.partner constraints (%s); falling back to base.partner_root",
@@ -71,6 +105,91 @@ class DiscussChannel(models.Model):
             except Exception:
                 pass
 
+    @api.model
+    def action_open_ai_discuss_chat(self):
+        """
+        Find or create a direct 1-on-1 chat channel between the current user and Hermes AI Agent
+        and return an action to immediately open Discuss focused on this conversation.
+        """
+        ai_partner = self._get_ai_partner()
+        user_partner = self.env.user.partner_id
+        if not ai_partner or not user_partner:
+            return False
+
+        # Search for existing 1-on-1 chat
+        channel = self.sudo().search([
+            ('channel_type', '=', 'chat'),
+            ('channel_partner_ids', 'in', [ai_partner.id]),
+            ('channel_partner_ids', 'in', [user_partner.id]),
+        ], limit=1)
+
+        if not channel:
+            # Fallback search by channel members
+            channel = self.sudo().search([
+                ('channel_type', '=', 'chat'),
+                ('channel_member_ids.partner_id', 'in', [ai_partner.id]),
+                ('channel_member_ids.partner_id', 'in', [user_partner.id]),
+            ], limit=1)
+
+        is_new = False
+        if not channel:
+            is_new = True
+            try:
+                if hasattr(self, 'channel_get'):
+                    res = self.sudo().channel_get(partners_to=[ai_partner.id, user_partner.id])
+                    channel = self.sudo().browse(res.get('id')) if isinstance(res, dict) else res
+                else:
+                    channel = self.sudo().create({
+                        'name': f"{user_partner.name}, {ai_partner.name}",
+                        'channel_type': 'chat',
+                        'channel_partner_ids': [(6, 0, [user_partner.id, ai_partner.id])],
+                    })
+            except Exception as e:
+                _logger.warning("Error creating direct AI chat channel: %s", e)
+                channel = self.sudo().create({
+                    'name': f"{user_partner.name}, {ai_partner.name}",
+                    'channel_type': 'chat',
+                    'channel_partner_ids': [(6, 0, [user_partner.id, ai_partner.id])],
+                })
+
+        if channel and is_new:
+            try:
+                channel.message_post(
+                    body=_(
+                        "<p>👋 <strong>Hello %s!</strong></p>"
+                        "<p>I am <strong>Hermes AI Agent</strong>, your sovereign autonomous assistant embedded in Odoo ERP.</p>"
+                        "<p>You can ask me questions about your database (Sales, CRM, Invoices, Products), "
+                        "request document summaries, or give me operational tasks. How can I help you today?</p>"
+                    ) % user_partner.name,
+                    author_id=ai_partner.id,
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_comment',
+                )
+            except Exception as e:
+                _logger.warning("Could not post welcome message in discuss channel: %s", e)
+
+        # Open Discuss App focused on this channel
+        try:
+            action = self.env['ir.actions.actions']._for_xml_id('mail.action_discuss')
+            action['context'] = {
+                'active_id': channel.id,
+                'default_active_id': f'discuss.channel_{channel.id}',
+            }
+            action['params'] = {
+                'default_active_id': f'discuss.channel_{channel.id}',
+            }
+            return action
+        except Exception:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Discuss',
+                'res_model': 'discuss.channel',
+                'res_id': channel.id,
+                'view_mode': 'form',
+                'views': [[False, 'form']],
+                'target': 'current',
+            }
+
     def _message_post_after_hook(self, message, msg_vals):
         """
         Intercept Discuss messages to trigger the AI Agent if the AI Bot partner is mentioned
@@ -90,7 +209,10 @@ class DiscussChannel(models.Model):
         is_mentioned = ai_partner in message.partner_ids
         is_direct_chat = (
             getattr(self, 'channel_type', '') == 'chat'
-            and ai_partner in getattr(self, 'channel_partner_ids', self.env['res.partner'])
+            and (
+                ai_partner in getattr(self, 'channel_partner_ids', self.env['res.partner'])
+                or ai_partner in self.mapped('channel_member_ids.partner_id')
+            )
         )
 
         if is_mentioned or is_direct_chat:

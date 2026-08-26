@@ -15,10 +15,18 @@
 ## 💬 How to Interact with Hermes AI in Discuss
 
 ### 1. Direct 1-on-1 Chat
-1. Open **Discuss** from the Odoo home menu.
-2. Click the **➕** icon next to **Direct Messages**.
-3. Type or select **`Hermes AI Agent`** to start a private conversation.
-4. Send questions, data queries, or task requests.
+
+You can start chatting with Hermes AI in two easy ways:
+
+- **🚀 One-Click Launch (Recommended):**
+  - Navigate to **AI Hub > Control Center** and click the **"💬 Chat in Discuss"** button in the header.
+  - Or click **AI Hub > Agentic Operations > 💬 Chat with Hermes (Discuss)** in the main navigation.
+  - This automatically provisions your personal chat channel with `Hermes AI Agent` and opens Odoo Discuss focused on the conversation.
+
+- **➕ Manual Selection in Discuss:**
+  - Open the **Discuss** app from the Odoo home menu.
+  - In the left sidebar, click the **➕** icon next to **Direct Messages**.
+  - Type **`Hermes AI Agent`** and press Enter.
 
 ```
 +───────────────────────────────────────────────────────────+

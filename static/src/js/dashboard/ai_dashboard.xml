@@ -8,6 +8,9 @@
                     <p>Real-time monitoring of AI providers, Hermes ACP sidecar supervisor, autonomous agents, and zero-trust governance.</p>
                 </div>
                 <div>
+                    <button class="btn btn-outline-primary me-2" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_discuss_chat')">
+                        <i class="fa fa-comments me-1"/> Chat in Discuss
+                    </button>
                     <button class="btn btn-outline-secondary me-2" t-on-click="() => this.openAction('odoo_ai_ce.action_ai_ce_documentation')">
                         <i class="fa fa-book me-1"/> Documentation
                     </button>

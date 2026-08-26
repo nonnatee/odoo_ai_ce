@@ -6,8 +6,17 @@
     <!-- Dashboard -->
     <menuitem id="menu_ai_ce_dashboard" name="Control Center" parent="menu_ai_ce_root" sequence="10" action="action_ai_ce_dashboard"/>
 
+    <!-- Server Action to Start/Open Discuss Chat with Hermes AI -->
+    <record id="action_ai_ce_discuss_chat" model="ir.actions.server">
+        <field name="name">Chat with Hermes AI (Discuss)</field>
+        <field name="model_id" ref="mail.model_discuss_channel"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_ai_discuss_chat()</field>
+    </record>
+
     <!-- Operations & Agentic Workflows -->
     <menuitem id="menu_ai_ce_ops_root" name="Agentic Operations" parent="menu_ai_ce_root" sequence="20"/>
+    <menuitem id="menu_ai_ce_discuss_chat" name="💬 Chat with Hermes (Discuss)" parent="menu_ai_ce_ops_root" sequence="1" action="action_ai_ce_discuss_chat"/>
     <menuitem id="menu_ai_ce_content_studio" name="Hermes Content Studio" parent="menu_ai_ce_ops_root" sequence="5" action="action_ai_ce_content_studio_wizard"/>
     <menuitem id="menu_ai_ce_agents" name="Autonomous Agents" parent="menu_ai_ce_ops_root" sequence="10" action="action_ai_ce_agent"/>
     <menuitem id="menu_ai_ce_jobs" name="Background Jobs" parent="menu_ai_ce_ops_root" sequence="15" action="action_ai_ce_job"/>
