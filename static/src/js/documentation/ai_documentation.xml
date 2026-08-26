@@ -113,7 +113,7 @@
                         </div>
 
                         <!-- Rendered Markdown Body -->
-                        <div class="o_ai_markdown_body" t-out="renderedHtml"/>
+                        <div class="o_ai_markdown_body" t-out="renderedHtml" t-on-click="onMarkdownBodyClick"/>
                     </article>
                 </main>
 
