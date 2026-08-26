@@ -27,9 +27,13 @@ Welcome to the comprehensive technical and operational documentation manual for 
    - Page architecture inspection, live SEO metadata updates, responsive QWeb snippet generation, and e-commerce product showcase injection.
 8. [**Odoo Discuss & Chat AI Integration Guide (`discuss_bot.md`)**](discuss_bot.md)
    - Dedicated `Hermes AI Agent` partner, 1-on-1 direct messages, channel @mentions, and HITL approval badges.
+9. [**AI Chat Prompts & Playbook (`chat_prompts.md`)**](chat_prompts.md)
+   - Comprehensive library of ready-to-use prompt templates for Sales, CRM, Invoices, Stock, Website, and Marketing.
+10. [**Autonomous Agent Use-Cases & Playbooks (`agent_use_cases.md`)**](agent_use_cases.md)
+    - End-to-end multi-turn ReAct execution loops, database queries, and zero-trust HITL consent flows.
 
 ### 🔌 Extensibility, Sidecars & MCP
-9. [**Model Context Protocol (MCP) Gateway Reference (`mcp_gateway.md`)**](mcp_gateway.md)
-   - Streamable-HTTP JSON-RPC 2.0 gateway (`/ai_ce/mcp_gateway`), Cursor / Claude Desktop integration, and resource allowlists.
-10. [**Hermes Agent Sidecar & Job Queue Reference (`hermes_sidecar.md`)**](hermes_sidecar.md)
+11. [**Model Context Protocol (MCP) Gateway Reference (`mcp_gateway.md`)**](mcp_gateway.md)
+    - Streamable-HTTP JSON-RPC 2.0 gateway (`/ai_ce/mcp_gateway`), Cursor / Claude Desktop integration, and resource allowlists.
+12. [**Hermes Agent Sidecar & Job Queue Reference (`hermes_sidecar.md`)**](hermes_sidecar.md)
     - Local loopback daemon (`127.0.0.1:8765`), ACP supervisor control, asynchronous job queue (`ai_ce.job`), and live telemetry.

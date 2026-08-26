@@ -86,6 +86,13 @@ Approvers can navigate to **AI Hub > Agentic Operations > Pending Approvals (HIT
 
 ---
 
+## 📚 Example Prompts Library & Playbook
+
+Looking for practical prompt ideas? Check out our dedicated guide:
+👉 [**AI Chat Prompts & Playbook (`chat_prompts.md`)**](chat_prompts.md) — featuring ready-to-use prompt templates for Sales, CRM, Overdue Invoices, Low Stock Alerts, Website QWeb snippets, and Marketing copy.
+
+---
+
 ## ⚙️ Technical Lifecycle in Discuss
 
 1. **Message Interception:** Hooked via `discuss.channel._message_post_after_hook`.
