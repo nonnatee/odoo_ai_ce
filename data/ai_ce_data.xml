@@ -232,7 +232,7 @@
                 "type": "object",
                 "properties": {
                     "product_tmpl_id": {"type": "integer", "description": "Target product.template record ID"},
-                    "selling_points": {"type": "array", "items": {"type": "string"}, "description": "Key value propositions & highlights"},
+                    "selling_points": {"type": "array", "items": {"type": "string"}, "description": "Key value propositions &amp; highlights"},
                     "faq_items": {"type": "array", "description": "List of FAQ objects with question and answer strings"},
                     "specs": {"type": "object", "description": "Technical specifications key-value dictionary"}
                 },
