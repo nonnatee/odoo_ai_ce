@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ai_ce.AiDocumentation">
+        <div class="o_ai_doc_container d-flex flex-column h-100 bg-light">
+            <!-- Top Navbar Header -->
+            <header class="o_ai_doc_header bg-white border-bottom px-4 py-3 d-flex align-items-center justify-content-between shadow-sm z-index-1">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="o_ai_doc_logo_badge p-2 bg-primary text-white rounded-3 shadow-sm d-flex align-items-center justify-content-center">
+                        <i class="fa fa-book fa-lg"/>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0 fw-bold text-dark">AI Hub Documentation &amp; Reference Manuals</h4>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">v19.0.1.1</span>
+                        </div>
+                        <p class="text-muted small mb-0">Complete technical guides, architectural blueprints, and tool catalogs</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" t-on-click="copyMarkdown">
+                        <i t-att-class="state.isCopiedAll ? 'fa fa-check text-success me-1' : 'fa fa-copy me-1'"/>
+                        <span t-out="state.isCopiedAll ? 'Copied!' : 'Copy Markdown'"/>
+                    </button>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" t-on-click="openDashboard">
+                        <i class="fa fa-tachometer me-1"/> Control Center
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Split Layout -->
+            <div class="o_ai_doc_body d-flex flex-grow-1 overflow-hidden">
+                <!-- Left Sidebar: Topic Navigation & Search -->
+                <aside class="o_ai_doc_sidebar bg-white border-end d-flex flex-column overflow-hidden">
+                    <!-- Search Input -->
+                    <div class="p-3 border-bottom bg-light">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted">
+                                <i class="fa fa-search"/>
+                            </span>
+                            <input type="text"
+                                   class="form-control border-start-0 ps-0"
+                                   placeholder="Search manuals, tools, APIs..."
+                                   t-model="state.searchQuery"/>
+                            <button t-if="state.searchQuery" 
+                                    class="btn btn-outline-secondary border-start-0 bg-white" 
+                                    type="button" 
+                                    t-on-click="() => state.searchQuery = ''">
+                                <i class="fa fa-times text-muted"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Topic List Grouped by Category -->
+                    <div class="o_ai_doc_nav flex-grow-1 overflow-auto p-3">
+                        <t t-foreach="categoryGroups" t-as="catName" t-key="catName">
+                            <div class="o_ai_doc_cat_section mb-4">
+                                <div class="text-uppercase small fw-bold text-muted px-2 mb-2 d-flex align-items-center justify-content-between">
+                                    <span t-out="catName"/>
+                                    <span class="badge bg-secondary-subtle text-secondary small" t-out="categoryGroups[catName].length"/>
+                                </div>
+                                <div class="list-group list-group-flush gap-1">
+                                    <t t-foreach="categoryGroups[catName]" t-as="topic" t-key="topic.id">
+                                        <button type="button"
+                                                class="list-group-item list-group-item-action rounded-3 border-0 px-3 py-2 d-flex align-items-center justify-content-between transition-all"
+                                                t-att-class="state.activeDocId === topic.id ? 'active bg-primary text-white shadow-sm' : 'text-dark bg-transparent hover-bg-light'"
+                                                t-on-click="() => this.onSelectTopic(topic.id)">
+                                            <div class="d-flex align-items-center gap-2 overflow-hidden text-truncate">
+                                                <i t-att-class="'fa ' + topic.icon + ' ' + (state.activeDocId === topic.id ? 'text-white' : 'text-primary')"/>
+                                                <span class="fw-medium text-truncate small" t-out="topic.title"/>
+                                            </div>
+                                            <span class="badge rounded-pill small ms-1"
+                                                  t-att-class="state.activeDocId === topic.id ? 'bg-white text-primary' : 'bg-light text-muted'"
+                                                  t-out="topic.reading_time"/>
+                                        </button>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div t-if="filteredTopics.length === 0" class="text-center p-4 text-muted">
+                            <i class="fa fa-search fa-2x mb-2 opacity-50"/>
+                            <p class="small mb-0">No matching topics found for "<span t-out="state.searchQuery"/>".</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer Info -->
+                    <div class="p-3 border-top bg-light text-center small text-muted">
+                        <i class="fa fa-shield text-success me-1"/> Sovereign Local AI &amp; Zero-Trust
+                    </div>
+                </aside>
+
+                <!-- Center Reading Pane -->
+                <main class="o_ai_doc_content flex-grow-1 overflow-auto bg-white p-4 p-md-5" t-ref="contentBody">
+                    <div t-if="state.isLoading" class="d-flex justify-content-center align-items-center py-5 h-50">
+                        <div class="spinner-border text-primary me-2" role="status"/>
+                        <span class="text-muted">Loading documentation guide...</span>
+                    </div>
+
+                    <article t-if="!state.isLoading" class="o_ai_doc_article mx-auto" style="max-width: 900px;">
+                        <!-- Topic Breadcrumbs & Category Badge -->
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                            <div class="d-flex align-items-center gap-2 small text-muted">
+                                <span>AI Hub</span>
+                                <i class="fa fa-angle-right"/>
+                                <span t-out="state.activeTopic ? state.activeTopic.category : ''"/>
+                                <i class="fa fa-angle-right"/>
+                                <span class="fw-bold text-dark" t-out="state.activeTopic ? state.activeTopic.title : ''"/>
+                            </div>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                <i class="fa fa-clock-o me-1"/> <t t-out="state.activeTopic ? state.activeTopic.reading_time : ''"/> read
+                            </span>
+                        </div>
+
+                        <!-- Rendered Markdown Body -->
+                        <div class="o_ai_markdown_body" t-out="renderedHtml"/>
+                    </article>
+                </main>
+
+                <!-- Right Sidebar: On-Page Quick Jump Headings -->
+                <aside t-if="state.headings.length &gt; 1" class="o_ai_doc_toc bg-light border-start d-none d-xl-flex flex-column p-3 overflow-auto" style="width: 260px;">
+                    <div class="text-uppercase small fw-bold text-muted mb-3 d-flex align-items-center gap-2">
+                        <i class="fa fa-list-ul text-primary"/> On this Page
+                    </div>
+                    <nav class="nav nav-pills flex-column gap-1 small">
+                        <t t-foreach="state.headings" t-as="h" t-key="h.anchor">
+                            <a class="nav-link py-1 px-2 text-truncate text-secondary rounded hover-bg-white"
+                               t-att-class="h.level === 3 ? 'ps-3 opacity-75' : 'fw-medium'"
+                               t-att-href="'#' + h.anchor"
+                               t-on-click.prevent="() => this.scrollToHeading(h.anchor)">
+                                <t t-out="h.text"/>
+                            </a>
+                        </t>
+                    </nav>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>

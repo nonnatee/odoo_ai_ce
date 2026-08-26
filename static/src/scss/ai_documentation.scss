@@ -1,0 +1,165 @@
+.o_ai_doc_container {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #334155;
+
+    .o_ai_doc_sidebar {
+        width: 320px;
+        min-width: 280px;
+        max-width: 380px;
+        transition: width 0.2s ease;
+
+        .list-group-item {
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            font-size: 0.875rem;
+
+            &:hover:not(.active) {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+            }
+
+            &.active {
+                background: linear-gradient(135deg, #714B67 0%, #52344a 100%) !important;
+                color: #ffffff !important;
+                font-weight: 600;
+            }
+        }
+    }
+
+    .o_ai_doc_content {
+        line-height: 1.7;
+        font-size: 0.95rem;
+
+        .o_ai_doc_article {
+            animation: fadeInDoc 0.2s ease-in-out;
+        }
+
+        h2 {
+            font-size: 1.65rem;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #714B67;
+            font-weight: 600;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        p {
+            color: #475569;
+            margin-bottom: 1rem;
+        }
+
+        ul, ol {
+            color: #475569;
+            margin-bottom: 1.25rem;
+            li {
+                margin-bottom: 0.35rem;
+            }
+        }
+
+        .o_ai_inline_code {
+            color: #714B67;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .o_ai_code_block {
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+            pre {
+                max-height: 480px;
+                background-color: #0f172a !important;
+                color: #f8fafc !important;
+                line-height: 1.45;
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            }
+
+            .copy-btn:hover {
+                color: #38bdf8 !important;
+            }
+        }
+
+        table {
+            font-size: 0.875rem;
+            border-color: #e2e8f0;
+
+            th {
+                background-color: #f8fafc;
+                color: #475569;
+                font-weight: 600;
+                border-bottom: 2px solid #cbd5e1;
+            }
+
+            td {
+                color: #334155;
+            }
+        }
+
+        .alert {
+            border-left: 4px solid;
+            font-size: 0.9rem;
+
+            &.alert-info {
+                border-left-color: #0284c7;
+                background-color: #f0f9ff;
+            }
+
+            &.alert-success {
+                border-left-color: #16a34a;
+                background-color: #f0fdf4;
+            }
+
+            &.alert-warning {
+                border-left-color: #d97706;
+                background-color: #fffbeb;
+            }
+
+            &.alert-danger {
+                border-left-color: #dc2626;
+                background-color: #fef2f2;
+            }
+        }
+    }
+
+    .o_ai_doc_toc {
+        font-size: 0.85rem;
+
+        .nav-link {
+            transition: all 0.15s ease;
+            color: #64748b;
+            border-left: 2px solid transparent;
+            border-radius: 0;
+
+            &:hover {
+                color: #714B67;
+                border-left-color: #714B67;
+                background-color: #ffffff;
+            }
+        }
+    }
+}
+
+@keyframes fadeInDoc {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

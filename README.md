@@ -240,16 +240,23 @@ You can connect external AI clients (Claude Desktop, Cursor IDE, Codex, or custo
 
 ---
 
-## 📚 Documentation Index
+## 📚 Documentation Index & In-App Manuals
+
+All guides are accessible **directly within Odoo** via **AI Hub > Documentation & Manuals** or by clicking the **"Documentation"** button in the AI Control Center Dashboard, as well as in the repository:
 
 | Guide | Description |
 |---|---|
-| 📖 [**Architecture & Security**](doc/architecture.md) | Deep architectural blueprint, data flow, zero-trust security model, and Hermes IPC protocol. |
+| 📖 [**Documentation Master Index**](doc/index.md) | Complete directory and overview of all technical and operational manuals. |
+| 🚀 [**Module Overview & Quick Start**](doc/module_overview.md) | Architecture summary, technical dependencies, models index, and wizard catalog. |
+| 🛡️ [**Architecture & Zero-Trust Security**](doc/architecture.md) | Deep architectural blueprint, data flow, zero-trust security model, and Hermes IPC protocol. |
+| 🔐 [**Configuration, Security & Governance**](doc/configuration_security.md) | Multi-provider configuration (Ollama, OpenAI, Claude, Gemini), tool sandboxing, and audit logs. |
 | 🛍️ [**Product Catalog Enrichment**](doc/product_enrichment.md) | User & administrator guide for SEO generation, multilingual translation, diff preview, and batch enrichment. |
 | 🎨 [**Hermes Content Studio**](doc/content_studio.md) | Guide for omni-channel content generation (Marketing emails, LINE Bot Flex messages, Knowledge base, Social). |
+| 🎯 [**Autonomous CRM Lead Intelligence**](doc/crm_intelligence.md) | Guide for automated CRM lead scoring (1–100), buying intent detection, and sales playbook generation. |
+| 🌐 [**Website & E-Commerce AI Tools**](doc/website_tools.md) | Guide for website page inspection, live SEO metadata updates, responsive snippet generator, and page mutations. |
+| 💬 [**Odoo Discuss & Chat AI Integration**](doc/discuss_bot.md) | Guide for AI Agent partner in Discuss, direct 1-on-1 chats, channel @mentions, and HITL approval badges. |
 | 🔌 [**MCP Gateway Reference**](doc/mcp_gateway.md) | Complete JSON-RPC 2.0 Streamable-HTTP protocol specification, tool calling schema, and client setup. |
 | 🤖 [**Hermes Sidecar Reference**](doc/hermes_sidecar.md) | Setup, architecture, worker pool management, and background job queue integration. |
-| 🎯 [**CRM Lead Intelligence**](doc/crm_intelligence.md) | Guide for automated CRM lead scoring (1–100), buying intent detection, and sales playbook generation. |
 
 ---
 

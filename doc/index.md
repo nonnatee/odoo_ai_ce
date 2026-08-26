@@ -1,37 +1,35 @@
 # Odoo AI Community Edition (`odoo_ai_ce`) Documentation
 
-Welcome to the comprehensive technical and operational documentation for **Odoo AI Community Edition (`odoo_ai_ce`)**.
+Welcome to the comprehensive technical and operational documentation manual for **Odoo AI Community Edition (`odoo_ai_ce`)**.
 
 ---
 
 ## 📑 Guides & Reference Manuals
 
-1. [**Architecture & Zero-Trust Security (`architecture.md`)**](architecture.md)
-   - Detailed component topology and execution flow.
-   - Zero-trust security, least-privilege scoping, and HITL consent queue.
-   - Hybrid active record & pgvector RAG grounding architecture.
+### 🚀 Getting Started & Architecture
+1. [**Module Overview & Quick Start (`module_overview.md`)**](module_overview.md)
+   - Module architecture, installation steps, and model registry index.
+2. [**Architecture & Zero-Trust Security (`architecture.md`)**](architecture.md)
+   - Component topology, execution flow, least-privilege scoping, and pgvector RAG.
+3. [**Configuration, Security & Governance (`configuration_security.md`)**](configuration_security.md)
+   - Multi-provider configuration (Ollama, OpenAI, Claude, Gemini), tool sandboxing, and audit logs.
 
-2. [**Product Catalog Enrichment Guide (`product_enrichment.md`)**](product_enrichment.md)
-   - Before/after interactive diff preview modal.
-   - Multilingual generation (EN, TH, JA, ZH, DE, FR) and copywriting tones.
-   - Asynchronous batch product mass-enrichment workflows.
-
-3. [**Hermes Content Studio Guide (`content_studio.md`)**](content_studio.md)
-   - Omni-channel content generation for Mass Mailing campaigns (`mass_mailing`).
-   - Structured LINE Bot Flex Message JSON payloads (`odoo_line_bot`).
-   - Long-form Knowledge Base articles and social media copy.
-
-4. [**Model Context Protocol (MCP) Gateway Reference (`mcp_gateway.md`)**](mcp_gateway.md)
-   - Streamable-HTTP JSON-RPC 2.0 protocol specification (`/ai_ce/mcp_gateway`).
-   - Tool discovery, dynamic schema extraction, and resource templates (`odoo://<model>`).
-   - Integration configurations for Claude Desktop, Cursor IDE, and custom autonomous agents.
-
-5. [**Hermes Agent Sidecar & Job Queue Reference (`hermes_sidecar.md`)**](hermes_sidecar.md)
-   - Local loopback daemon setup and supervision on `127.0.0.1:8765`.
-   - Asynchronous background job queue (`ai_ce.job`) and worker pool.
-   - Real-time SSE and webhook checkpoint progress streaming.
-
+### 💼 Operational AI Studios & Business Intelligence
+4. [**Product Catalog Enrichment Guide (`product_enrichment.md`)**](product_enrichment.md)
+   - Interactive before/after diff preview modal, multilingual generation, and mass batch enrichment.
+5. [**Hermes Content Studio Guide (`content_studio.md`)**](content_studio.md)
+   - Omni-channel content generator for Mass Mailing campaigns, LINE Bot Flex Messages, Knowledge Base, and Social.
 6. [**Autonomous CRM Lead Intelligence Guide (`crm_intelligence.md`)**](crm_intelligence.md)
-   - Automatic company domain profiling and industry inference.
-   - 1–100 lead qualification scoring and purchase intent detection.
-   - Auto-drafted personalized sales playbooks in CRM chatter notes.
+   - Inferred company domain profiling, 1–100 qualification scoring, intent classification, and sales playbooks.
+
+### 🌐 Intelligent Tools & Interactive Agents
+7. [**Website & E-Commerce AI Tools Guide (`website_tools.md`)**](website_tools.md)
+   - Page architecture inspection, live SEO metadata updates, responsive QWeb snippet generation, and e-commerce product showcase injection.
+8. [**Odoo Discuss & Chat AI Integration Guide (`discuss_bot.md`)**](discuss_bot.md)
+   - Dedicated `Hermes AI Agent` partner, 1-on-1 direct messages, channel @mentions, and HITL approval badges.
+
+### 🔌 Extensibility, Sidecars & MCP
+9. [**Model Context Protocol (MCP) Gateway Reference (`mcp_gateway.md`)**](mcp_gateway.md)
+   - Streamable-HTTP JSON-RPC 2.0 gateway (`/ai_ce/mcp_gateway`), Cursor / Claude Desktop integration, and resource allowlists.
+10. [**Hermes Agent Sidecar & Job Queue Reference (`hermes_sidecar.md`)**](hermes_sidecar.md)
+    - Local loopback daemon (`127.0.0.1:8765`), ACP supervisor control, asynchronous job queue (`ai_ce.job`), and live telemetry.

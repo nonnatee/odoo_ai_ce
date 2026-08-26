@@ -2,3 +2,4 @@
 from . import main
 from . import mcp_gateway
 from . import hermes_connector
+from . import documentation

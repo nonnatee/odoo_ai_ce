@@ -1,0 +1,74 @@
+# Odoo Discuss & Chat AI Integration Guide
+
+`odoo_ai_ce` integrates an autonomous AI Agent directly into **Odoo Discuss (`discuss.channel`)**, allowing team members to converse with the AI in group channels, project rooms, and 1-on-1 direct chats.
+
+---
+
+## 🤖 Overview
+
+- **Virtual Partner Identity:** The AI operates under the dedicated partner identity **`Hermes AI Agent`**.
+- **Context-Aware Reasoning:** The bot maintains conversation history across turns using `ai_ce.session`.
+- **Zero-Trust Safety:** Whenever the AI suggests a destructive action or website view modification, it queues a Human-in-the-Loop (HITL) approval request and displays an approval badge in the chat.
+
+---
+
+## 💬 How to Interact with Hermes AI in Discuss
+
+### 1. Direct 1-on-1 Chat
+1. Open **Discuss** from the Odoo home menu.
+2. Click the **➕** icon next to **Direct Messages**.
+3. Type or select **`Hermes AI Agent`** to start a private conversation.
+4. Send questions, data queries, or task requests.
+
+```
++───────────────────────────────────────────────────────────+
+| Hermes AI Agent                                  💬 Chat  |
++───────────────────────────────────────────────────────────+
+| User:                                                     |
+| "Summarize our top 5 overdue customer invoices."         |
+|                                                           |
+| 🤖 Hermes AI Agent:                                       |
+| Here are the 5 largest overdue invoices as of today:      |
+| 1. INV/2026/0014 - Deco Addict: $4,250.00 (34 days)       |
+| 2. INV/2026/0019 - Azure Interior: $3,100.00 (21 days)    |
+| ...                                                       |
++───────────────────────────────────────────────────────────+
+```
+
+### 2. Group Channels & Project Discussions (@Mentions)
+In public or private channels (e.g. `#general`, `#sales-leads`, `#support`), invoke the AI by typing `@Hermes`:
+
+```
+@Hermes AI Agent Can you analyze the buying intent for Lead #124 and suggest an outreach email?
+```
+
+The AI will parse the mention, retrieve the relevant CRM context using active record tools, and reply in the channel.
+
+---
+
+## 🛡️ Human-in-the-Loop (HITL) Approval Badges
+
+When the AI prepares a write or update action that requires confirmation (such as updating a live website arch or batch-updating records):
+
+```
++───────────────────────────────────────────────────────────+
+| 🤖 Hermes AI Agent:                                       |
+| I have generated the responsive FAQ accordion snippet.    |
+|                                                           |
+| ⚠️ Approval Required:                                     |
+| This action requires administrator confirmation.          |
+| Pending Consent Request #18 has been queued.             |
++───────────────────────────────────────────────────────────+
+```
+
+Approvers can navigate to **AI Hub > Agentic Operations > Pending Approvals (HITL)** to inspect and approve the action.
+
+---
+
+## ⚙️ Technical Lifecycle in Discuss
+
+1. **Message Interception:** Hooked via `discuss.channel._message_post_after_hook`.
+2. **Author Check:** Messages authored by `Hermes AI Agent` are ignored to eliminate infinite recursion loops.
+3. **Session Binding:** Automatically creates or attaches to an `ai_ce.session` linked to the discuss channel (`name="Discuss Channel #<id>"`).
+4. **Agent Dispatch:** Executes `agent.run_agent()` with caller context, user credentials, and registered tools.
+5. **Response Posting:** Posts the styled HTML response back to the channel with `author_id=Hermes AI Agent`.
